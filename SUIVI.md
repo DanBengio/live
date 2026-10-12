@@ -1,10 +1,10 @@
 # Live — suivi du projet
 
-Dernière mise à jour : 12 octobre 2026, soir.
+Dernière mise à jour : 12 octobre 2026, nuit (Dan est parti dormir).
 
 ## En une phrase
 
-Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée, un QR code, les participants répondent sur leur téléphone. Code dans `C:\Users\HP VICTUS\DEV\live`. Mise en ligne en cours sur https://sondage.baratextile.com (Infomaniak, site Node.js).
+Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée, un QR code, les participants répondent sur leur téléphone. Code dans `C:\Users\HP VICTUS\DEV\live`. En ligne sur https://sondage.baratextile.com (Infomaniak, site Node.js), avec un module PowerPoint maison qui affiche les questions dans les diapos.
 
 ## Où on en est
 
@@ -20,10 +20,17 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Prochaine action
 
-**Dan** : ouvrir le lien « adopter » envoyé par Claude (range la présentation dans « Mes présentations »), relire le fichier « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » (Téléchargements), et avant l'atelier cliquer « Nouvel atelier : remettre à zéro » sur la page PowerPoint de la présentation.
-**Dan** : envoyer à son associé (atelier sur Mac le 13/10) le fichier LIVE.pptx et le guide « Live sur Mac - pour mon associé.txt » (Téléchargements), puis rapporter si les modules s'ouvrent sur Mac.
-**Claude** : ajuster les questions si Dan le demande.
-**Claude** : corriger si besoin, puis faire un test complet avec Dan sur le site en ligne.
+**Demain matin, 13 octobre — Dan, dans l'ordre :**
+1. Ouvrir le lien « adopter » (dans la conversation du 12/10) s'il ne l'a pas encore fait : il range « Recharge tes 3 batteries · ICF & Edvantis » dans « Mes présentations ».
+2. Sur la page PowerPoint de cette présentation, cliquer **« Nouvel atelier : remettre à zéro »** (les réponses de test du 12/10 sont encore dans la salle).
+3. Envoyer à son associé, qui anime sur **Mac** le 13/10 : le fichier « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » et le guide « Live sur Mac - pour mon associé.txt » (tous deux dans Téléchargements). L'associé installe le module et vérifie la diapo 3 **avant** l'atelier.
+4. Rapporter à Claude si les modules s'ouvrent sur Mac, et comment s'est passé l'atelier.
+
+**Plan B si le Mac bloque** : animer depuis le site dans le navigateur (bouton Lancer), sans PowerPoint.
+
+**Claude** : selon le retour du Mac, corriger le module ou la procédure ; ajuster les questions si Dan le demande.
+
+**Non urgent** : la ligne d'installation Mac a été ajoutée à la page PowerPoint du site, mais pas encore mise en ligne (git pull + Build + Run au prochain déploiement).
 
 ## Comment déployer une mise à jour
 
