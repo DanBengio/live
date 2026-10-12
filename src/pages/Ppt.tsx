@@ -4,8 +4,7 @@ import { backend } from '../backend'
 import Host from './Host'
 
 /**
- * Page à coller dans une diapo PowerPoint (module Web Viewer).
- * Adresse : /ppt/<code fixe>/<diapo>?k=<clé>
+ * Diapo PowerPoint. Adresse : /ppt/<code fixe>/<diapo>?k=<clé>
  *   accueil          → QR code + code à 6 chiffres
  *   <id d'activité>  → cette activité (suit l'activité même si on change l'ordre)
  *   fin              → remerciements et classement
@@ -14,16 +13,21 @@ import Host from './Host'
 export default function Ppt() {
   const { code, slide } = useParams()
   const [params] = useSearchParams()
-  const key = params.get('k') ?? ''
+  return <PptView code={code} slide={slide} slideKey={params.get('k') ?? ''} />
+}
+
+/** Utilisé par la page web /ppt/... et par le module PowerPoint (avec `live`) */
+export function PptView({ code, slide, slideKey, live }: { code?: string; slide?: string; slideKey: string; live?: boolean }) {
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
     if (!code || !backend.openLive) return setState('error')
-    backend.openLive(code, key).then(
+    setState('loading')
+    backend.openLive(code, slideKey).then(
       () => setState('ready'),
       () => setState('error'),
     )
-  }, [code, key])
+  }, [code, slideKey])
 
   if (state === 'loading') return <div className="page"><span className="spinner" /></div>
   if (state === 'error' || !slide)
@@ -32,5 +36,17 @@ export default function Ppt() {
         <p>Diapo introuvable : vérifiez l’adresse copiée depuis la page PowerPoint du site.</p>
       </div>
     )
-  return <Host code={code} slide={slide} />
+  return <Host code={code} slide={slide} live={live} />
+}
+
+/** Découpe une adresse de diapo copiée depuis la page PowerPoint du site */
+export function parseSlideUrl(text: string): { code: string; slide: string; slideKey: string } | null {
+  try {
+    const u = new URL(text.trim())
+    const m = /^\/ppt\/(\d{6})\/([\w-]+)$/.exec(u.pathname)
+    const k = u.searchParams.get('k')
+    return m && k ? { code: m[1], slide: m[2], slideKey: k } : null
+  } catch {
+    return null
+  }
 }

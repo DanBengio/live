@@ -163,4 +163,8 @@ export const httpBackend: Backend = {
     return (await call<{ code: string }>('POST', `/api/live/${encodeURIComponent(code)}`)).code
   },
   resetPresentation: (id) => call('POST', `/api/presentations/${encodeURIComponent(id)}/reset`),
+  adoptPresentation: (id, key) => {
+    setSlideKey(key)
+    return call('POST', `/api/presentations/${encodeURIComponent(id)}/adopt`)
+  },
 }

@@ -917,3 +917,30 @@ label.field > span {
     display: none;
   }
 }
+
+/* Module PowerPoint */
+.addin-setup {
+  max-width: 640px;
+}
+.addin-setup .input {
+  width: 100%;
+  margin: 8px 0;
+}
+.addin-setup .error {
+  color: #f87171;
+}
+.addin-edit {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 30;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.9);
+  font-size: 0.85rem;
+}

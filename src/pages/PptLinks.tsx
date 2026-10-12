@@ -4,7 +4,7 @@ import { backend } from '../backend'
 import { ITEM_ICONS, ITEM_LABELS } from '../lib/items'
 import type { Presentation } from '../types'
 
-/** Adresses à coller dans les diapos PowerPoint (module Web Viewer), une par activité */
+/** Adresses à coller dans les diapos PowerPoint (module PowerPoint Live), une par activité */
 export default function PptLinks() {
   const { id } = useParams()
   const [pres, setPres] = useState<Presentation | null | undefined>(undefined)
@@ -67,13 +67,15 @@ export default function PptLinks() {
       <div className="card">
         <h3>Une seule fois sur votre PC</h3>
         <p className="muted">
-          Dans PowerPoint : <b>Insertion</b> → <b>Compléments</b> (ou « Obtenir des compléments ») → cherchez <b>Web Viewer</b> →{' '}
-          <b>Ajouter</b>.
+          Téléchargez <a href="/addin/installer-module-live.bat" download>l’installateur du module Live</a>, double-cliquez dessus
+          (si Windows avertit : « Informations complémentaires » → « Exécuter quand même »), puis rouvrez PowerPoint. PowerPoint
+          sur Windows uniquement.
         </p>
         <h3>Pour chaque diapo</h3>
         <p className="muted">
-          Insérez Web Viewer sur la diapo, collez l’adresse de l’activité ci-dessous, puis agrandissez le cadre à la taille de la
-          diapo. En diaporama, afficher la diapo suffit : les téléphones passent tout seuls à cette activité.
+          Dans PowerPoint : <b>Insertion</b> → <b>Compléments</b> → <b>Mes compléments</b> → <b>Live</b>. Collez l’adresse de
+          l’activité ci-dessous, puis agrandissez le cadre à la taille de la diapo. En diaporama, afficher la diapo suffit : les
+          téléphones passent tout seuls à cette activité.
         </p>
       </div>
 

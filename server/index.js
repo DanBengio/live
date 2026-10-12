@@ -215,6 +215,16 @@ app.post('/api/live/:code', (req, res) => {
   save()
   res.json({ code })
 })
+// Lien « adopter » : la clé des diapos permet de ranger la présentation dans ce navigateur
+app.post('/api/presentations/:id/adopt', (req, res) => {
+  const p = db.presentations[req.params.id]
+  const uid = uidOf(req)
+  if (!p || !uid || req.get('x-key') !== p.slideKey) return res.status(404).json({ error: 'Présentation introuvable' })
+  p.ownerId = uid
+  if (db.sessions[p.code]) db.sessions[p.code].hostId = uid
+  save()
+  res.json({ ok: true })
+})
 app.post('/api/presentations/:id/reset', (req, res) => {
   const p = db.presentations[req.params.id]
   if (!p || p.ownerId !== uidOf(req)) return res.status(404).json({ error: 'Présentation introuvable' })

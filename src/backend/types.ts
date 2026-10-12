@@ -41,4 +41,6 @@ export interface Backend {
   openLive?(code: string, key?: string): Promise<string>
   /** Le prochain lancement repartira d'une session vide */
   resetPresentation?(id: string): Promise<void>
+  /** Range dans « Mes présentations » une présentation dont on a la clé */
+  adoptPresentation?(id: string, key: string): Promise<void>
 }

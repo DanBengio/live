@@ -10,6 +10,11 @@ interface Props {
   /** Mode diapo PowerPoint : code fixe et diapo à afficher ('accueil', 'fin' ou identifiant d'une activité) */
   code?: string
   slide?: string
+  /**
+   * Module PowerPoint : true quand cette diapo est à l'écran en diaporama.
+   * La salle change d'activité au passage à true. Absent = page web : on synchronise au chargement.
+   */
+  live?: boolean
 }
 
 export default function Host(props: Props) {
@@ -74,14 +79,21 @@ export default function Host(props: Props) {
       update({ status: 'active', ...stateFor(index, s.items) })
     }
   }
+  const live = props.live
   const syncedRef = useRef(false)
   useEffect(() => {
-    if (!ppt || !session || syncedRef.current) return
+    if (!ppt || live !== undefined || !session || syncedRef.current) return
     syncedRef.current = true
     syncSlide()
   }, [ppt, session]) // eslint-disable-line react-hooks/exhaustive-deps
+  // module PowerPoint : on suit le diaporama, pas le chargement de la page
+  const wasLiveRef = useRef(false)
   useEffect(() => {
-    if (!ppt) return
+    if (live && session && !wasLiveRef.current) syncSlide()
+    wasLiveRef.current = !!live && !!session
+  }, [live, session]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!ppt || live !== undefined) return
     const h = () => syncSlide()
     document.addEventListener('visibilitychange', h)
     window.addEventListener('focus', h)
