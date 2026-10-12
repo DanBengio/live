@@ -14,13 +14,14 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] Site Node.js créé chez Infomaniak : `sondage.baratextile.com` (Node 24, démarrage `npm start`, port 3000, build `npm install --include=dev && npm run build`).
 - [x] Premier déploiement : https://sondage.baratextile.com en ligne (vérifié le 12/10 au soir). Réglage clé : commande d'exécution = `npm start` dans les paramètres avancés.
 - [ ] **EN COURS** : test en conditions réelles sur le site en ligne (téléphones en 4G, plusieurs personnes).
-- [ ] **EN COURS** : intégration PowerPoint (option B, Web Viewer). Code écrit et testé sur le PC, à mettre en ligne puis à tester dans PowerPoint.
+- [x] Module PowerPoint Live en ligne et installé sur le PC de Dan (12/10). Testé en vrai dans PowerPoint : en diaporama, la salle passe à la question 5 à 10 secondes après l'arrivée de la diapo.
+- [x] Deck « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » (Téléchargements, 51 diapos) : 17 questions Live, code fixe 434294. Le module couvre les diapos 2, 7, 9, 14, 17, 22, 25, 29, 33 d'origine ; 9 diapos Live ajoutées (accueil, checks, coup de barre, recharge, P/E/M, énergie avant/après la pause active, choix de l'expérience). Checks P/E/M notés de 1 à 10 et phrases libres (diapos 37, 41) restent dans le chat. Script : `scripts/deck-live.cjs`.
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**Dan** : mettre en ligne (console SSH `git pull`, Build, Run), puis double-cliquer l'installateur du module (https://sondage.baratextile.com/addin/installer-module-live.bat) et rouvrir PowerPoint.
-**Claude** : ensuite, créer la présentation Live du deck ICF & Edvantis sur le site en ligne, envoyer à Dan le lien « adopter », et préparer le fichier PowerPoint avec le module sur les bonnes diapos.
+**Dan** : ouvrir le lien « adopter » envoyé par Claude (range la présentation dans « Mes présentations »), relire le fichier « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » (Téléchargements), et avant l'atelier cliquer « Nouvel atelier : remettre à zéro » sur la page PowerPoint de la présentation.
+**Claude** : ajuster les questions si Dan le demande.
 **Claude** : corriger si besoin, puis faire un test complet avec Dan sur le site en ligne.
 
 ## Comment déployer une mise à jour
@@ -65,3 +66,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **12 octobre 2026, nuit** : site en ligne et stable. Intégration PowerPoint (option B) codée et testée en local : code fixe, adresses par diapo, page « PowerPoint ».
 - **12 octobre 2026, nuit (suite)** : Dan envoie le deck « Recharge tes 3 batteries - ICF & Edvantis » (42 diapos) pour le relier à Live. On découvre que Web Viewer n'existe plus. Une liste de questions est proposée, en attente de validation.
 - **12 octobre 2026, nuit (fin)** : module PowerPoint Live codé, testé hors PowerPoint, poussé. Reste à le tester dans PowerPoint après mise en ligne.
+- **12 octobre 2026, nuit (fin bis)** : module testé dans PowerPoint, deck ICF & Edvantis livré avec le module posé. Dan a déjà répondu depuis son téléphone pendant les tests : remettre à zéro avant l'atelier.
