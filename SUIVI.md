@@ -26,7 +26,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 3. Envoyer à son associé, qui anime sur **Mac** le 13/10 : le fichier « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » et le guide « Live sur Mac - pour mon associé.txt » (tous deux dans Téléchargements). L'associé installe le module et vérifie la diapo 3 **avant** l'atelier.
 4. Rapporter à Claude si les modules s'ouvrent sur Mac, et comment s'est passé l'atelier.
 
-**Plan B si le Mac bloque** : animer depuis le site dans le navigateur (bouton Lancer), sans PowerPoint.
+**Plan B si le Mac bloque** : sans PowerPoint, ouvrir dans le navigateur les adresses de la fin du guide Mac, une par question (chaque adresse ouverte fait passer la salle à sa question). Le bouton Lancer du site ne marche que dans le navigateur de Dan, propriétaire de la présentation.
 
 **Claude** : selon le retour du Mac, corriger le module ou la procédure ; ajuster les questions si Dan le demande.
 
