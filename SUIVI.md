@@ -12,13 +12,13 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] Testée sur le PC avec le téléphone de Dan via le Wi-Fi (`demarrer.bat`).
 - [x] Dépôt GitHub public : https://github.com/DanBengio/live (branche `main`).
 - [x] Site Node.js créé chez Infomaniak : `sondage.baratextile.com` (Node 24, démarrage `npm start`, port 3000, build `npm install --include=dev && npm run build`).
-- [ ] **EN COURS** : premier déploiement. Dan a collé le `git clone` dans la console SSH du site et lancé le Build. Reste à vérifier que https://sondage.baratextile.com affiche « Mes présentations ».
-- [ ] Test en conditions réelles sur le site en ligne (téléphones en 4G, plusieurs personnes).
+- [x] Premier déploiement : https://sondage.baratextile.com en ligne (vérifié le 12/10 au soir). Réglage clé : commande d'exécution = `npm start` dans les paramètres avancés.
+- [ ] **EN COURS** : test en conditions réelles sur le site en ligne (téléphones en 4G, plusieurs personnes).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, intégration PowerPoint.
 
 ## Prochaine action
 
-**Dan** : ouvrir https://sondage.baratextile.com après le Build et dire ce qu'il voit (capture si erreur).
+**Dan** : créer une présentation sur le site en ligne, la lancer, scanner le QR code avec un téléphone en 4G (Wi-Fi coupé) et répondre. Dire ce qui marche ou pas.
 **Claude** : corriger si besoin, puis faire un test complet avec Dan sur le site en ligne.
 
 ## Comment déployer une mise à jour
@@ -28,7 +28,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
    ```bash
    cd ~/sites/sondage.baratextile.com && git pull
    ```
-3. Dan clique **Build** sur le tableau de bord du site (l'application redémarre toute seule à la fin).
+3. Dan clique **Build** sur le tableau de bord du site, puis **Run** si l'application est arrêtée.
 
 ## Décisions prises
 
@@ -55,4 +55,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Journal
 
-- **12 octobre 2026** : création de l'application, tests locaux avec le téléphone de Dan, abandon de Firebase, choix Infomaniak, création du site Node.js, dépôt GitHub, premier build lancé.
+- **12 octobre 2026** : création de l'application, tests locaux avec le téléphone de Dan, abandon de Firebase, choix Infomaniak, création du site Node.js, dépôt GitHub, premier build lancé. Le soir : le site répond encore avec la page de maintenance Infomaniak, l'application n'est pas démarrée ; Build réussi, application arrêtée : Dan a cliqué Run, l'application s'arrête toute seule : `npm start` lancé en SSH fonctionne : le site répond bien (vérifié). Le problème vient du réglage de Run chez Infomaniak : Run relance la compilation au lieu de `npm start` (commande d'exécution à corriger). Corrigé par Dan : le site est en ligne.
