@@ -68,9 +68,15 @@ export default function PptLinks() {
         <h3>Une seule fois sur votre PC</h3>
         <p className="muted">
           Téléchargez <a href="/addin/installer-module-live.bat" download>l’installateur du module Live</a>, double-cliquez dessus
-          (si Windows avertit : « Informations complémentaires » → « Exécuter quand même »), puis rouvrez PowerPoint. PowerPoint
-          sur Windows uniquement.
+          (si Windows avertit : « Informations complémentaires » → « Exécuter quand même »), puis rouvrez PowerPoint.
         </p>
+        <p className="muted">
+          Sur Mac : quittez PowerPoint, ouvrez le Terminal et collez la ligne ci-dessous, puis rouvrez PowerPoint.
+        </p>
+        <pre className="muted" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '0.8rem' }}>
+          mkdir -p ~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef && curl -fsSL
+          {' ' + location.origin}/addin/manifest.xml -o ~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef/live.xml
+        </pre>
         <h3>Pour chaque diapo</h3>
         <p className="muted">
           Dans PowerPoint : <b>Insertion</b> → <b>Compléments</b> → <b>Mes compléments</b> → <b>Live</b>. Collez l’adresse de
