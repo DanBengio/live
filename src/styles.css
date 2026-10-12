@@ -876,3 +876,44 @@ label.field > span {
   color: #fca5a5;
   font-size: 0.9rem;
 }
+
+/* Diapo PowerPoint : un seul bouton discret, en bas à droite */
+.slidebar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  opacity: 0.85;
+}
+.slidebar:hover {
+  opacity: 1;
+}
+
+/* Page « PowerPoint » : adresses à copier */
+.ppt-links {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.ppt-link {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.ppt-link .label {
+  font-weight: 600;
+}
+.ppt-link .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .ppt-link {
+    grid-template-columns: 1fr auto;
+  }
+  .ppt-link .title {
+    display: none;
+  }
+}

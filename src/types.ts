@@ -40,6 +40,10 @@ export interface Presentation {
   items: Item[]
   createdAt: number
   updatedAt: number
+  /** Code fixe à 6 chiffres, attribué par le serveur et réutilisé à chaque atelier */
+  code?: string
+  /** Clé secrète des adresses de diapos PowerPoint */
+  slideKey?: string
 }
 
 export type SessionStatus = 'lobby' | 'active' | 'ended'

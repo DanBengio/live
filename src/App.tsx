@@ -3,6 +3,8 @@ import Home from './pages/Home'
 import Editor from './pages/Editor'
 import Host from './pages/Host'
 import Screen from './pages/Screen'
+import Ppt from './pages/Ppt'
+import PptLinks from './pages/PptLinks'
 import Join from './pages/Join'
 import Participant from './pages/Participant'
 
@@ -13,6 +15,8 @@ export default function App() {
       <Route path="/edit/:id" element={<Editor />} />
       <Route path="/host/:code" element={<Host />} />
       <Route path="/screen/:code" element={<Screen />} />
+      <Route path="/ppt/:code/:slide" element={<Ppt />} />
+      <Route path="/powerpoint/:id" element={<PptLinks />} />
       <Route path="/join" element={<Join />} />
       <Route path="/join/:code" element={<Join />} />
       <Route path="/p/:code" element={<Participant />} />

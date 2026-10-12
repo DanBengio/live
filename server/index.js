@@ -7,6 +7,7 @@
  *   PUBLIC_URL=https://live.mondomaine.com : adresse publique si derrière un nom de domaine.
  */
 import express from 'express'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -73,8 +74,33 @@ function findSession(req, res) {
   if (!s) res.status(404).json({ error: 'Session introuvable' })
   return s
 }
+/** Code à 6 chiffres libre : ni session existante, ni code fixe d'une présentation */
+function freeCode() {
+  const used = new Set([...Object.keys(db.sessions), ...Object.values(db.presentations).map((p) => p.code)])
+  for (;;) {
+    const c = String(100000 + crypto.randomInt(900000))
+    if (!used.has(c)) return c
+  }
+}
+const newKey = () => crypto.randomBytes(12).toString('base64url')
+
+/** Chaque présentation a un code fixe (réutilisé à chaque atelier) et une clé pour les diapos PowerPoint */
+function ensureFixed(p) {
+  if (!p.code) p.code = freeCode()
+  if (!p.slideKey) p.slideKey = newKey()
+  return p
+}
+if (Object.values(db.presentations).some((p) => !p.code || !p.slideKey)) {
+  for (const p of Object.values(db.presentations)) ensureFixed(p)
+  save()
+}
+
+/** Animateur = l'auteur de la session, ou une diapo PowerPoint qui présente la bonne clé */
+const isHostReq = (req, s) =>
+  (!!uidOf(req) && s.hostId === uidOf(req)) || (!!s.screenKey && req.get('x-key') === s.screenKey)
+
 function requireHost(req, res, s) {
-  if (!uidOf(req) || s.hostId !== uidOf(req)) {
+  if (!isHostReq(req, s)) {
     res.status(403).json({ error: 'Réservé à l’animateur' })
     return false
   }
@@ -116,14 +142,83 @@ app.put('/api/presentations/:id', (req, res) => {
   if (!p || p.id !== req.params.id || !uid || p.ownerId !== uid || (existing && existing.ownerId !== uid)) {
     return res.status(403).json({ error: 'Refusé' })
   }
-  db.presentations[p.id] = { ...p, title: str(p.title, 120), items: Array.isArray(p.items) ? p.items : [] }
+  db.presentations[p.id] = ensureFixed({
+    ...p,
+    title: str(p.title, 120),
+    items: Array.isArray(p.items) ? p.items : [],
+    // code fixe, clé et remise à zéro : jamais imposés par le navigateur
+    code: existing?.code,
+    slideKey: existing?.slideKey,
+    resetAt: existing?.resetAt ?? 0,
+  })
   save()
-  res.json({ ok: true })
+  res.json(db.presentations[p.id])
 })
 app.delete('/api/presentations/:id', (req, res) => {
   const existing = db.presentations[req.params.id]
   if (existing && existing.ownerId !== uidOf(req)) return res.status(403).json({ error: 'Refusé' })
   delete db.presentations[req.params.id]
+  save()
+  res.json({ ok: true })
+})
+
+// Session en direct d'une présentation, sur son code fixe.
+// Appelée par le bouton Lancer (auteur) et par chaque diapo PowerPoint (clé).
+// Repart à zéro si la session précédente est terminée, date de plus de 12 h, ou après « Remettre à zéro ».
+const SESSION_MAX_AGE = 12 * 3600 * 1000
+app.post('/api/live/:code', (req, res) => {
+  const pres = Object.values(db.presentations).find((p) => p.code === req.params.code)
+  const uid = uidOf(req)
+  if (!pres || !((uid && pres.ownerId === uid) || req.get('x-key') === pres.slideKey)) {
+    return res.status(404).json({ error: 'Présentation introuvable' })
+  }
+  const code = pres.code
+  let s = db.sessions[code]
+  const viaSlide = req.get('x-key') === pres.slideKey
+  // une diapo peut rouvrir une session « terminée » (retour en arrière après la diapo de fin) ;
+  // le bouton Lancer du site, lui, repart à zéro
+  const stale =
+    !s ||
+    Date.now() - s.createdAt > SESSION_MAX_AGE ||
+    (pres.resetAt ?? 0) > s.createdAt ||
+    (s.status === 'ended' && !viaSlide)
+  if (s && stale) {
+    // on garde l'ancien atelier de côté (pour un futur export) sous un autre nom
+    const old = `${code}~${s.createdAt}`
+    for (const t of ['sessions', 'participants', 'answers', 'questions']) {
+      if (db[t][code]) db[t][old] = db[t][code]
+      delete db[t][code]
+    }
+    s = null
+  }
+  if (!s) {
+    s = db.sessions[code] = {
+      code,
+      hostId: pres.ownerId,
+      presId: pres.id,
+      title: pres.title,
+      items: pres.items,
+      status: 'lobby',
+      currentIndex: -1,
+      phase: 'question',
+      questionStartedAt: null,
+      timerEndsAt: null,
+      scoredItems: [],
+      createdAt: Date.now(),
+    }
+    db.participants[code] = {}
+    db.answers[code] = {}
+    db.questions[code] = {}
+  }
+  // toujours les dernières questions de la présentation (les réponses sont rangées par activité)
+  Object.assign(s, { title: pres.title, items: pres.items, hostId: pres.ownerId, screenKey: pres.slideKey })
+  save()
+  res.json({ code })
+})
+app.post('/api/presentations/:id/reset', (req, res) => {
+  const p = db.presentations[req.params.id]
+  if (!p || p.ownerId !== uidOf(req)) return res.status(404).json({ error: 'Présentation introuvable' })
+  p.resetAt = Date.now()
   save()
   res.json({ ok: true })
 })
@@ -143,12 +238,14 @@ app.post('/api/sessions', (req, res) => {
 })
 app.get('/api/sessions/:code', (req, res) => {
   const s = findSession(req, res)
-  if (s) res.json(s)
+  if (!s) return
+  const { screenKey, ...visible } = s
+  res.json(visible)
 })
 app.patch('/api/sessions/:code', (req, res) => {
   const s = findSession(req, res)
   if (!s || !requireHost(req, res, s)) return
-  Object.assign(s, req.body, { code: s.code, hostId: s.hostId })
+  Object.assign(s, req.body, { code: s.code, hostId: s.hostId, screenKey: s.screenKey })
   save()
   res.json({ ok: true })
 })

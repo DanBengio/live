@@ -35,4 +35,10 @@ export interface Backend {
   voteQuestion(code: string, qid: string, pid: string): Promise<void>
   updateQuestion(code: string, qid: string, patch: Partial<Question>): Promise<void>
   subscribeQuestions(code: string, cb: (list: Question[]) => void): Unsubscribe
+
+  // Code fixe et diapos PowerPoint (serveur Node uniquement)
+  /** Ouvre (ou rouvre) la session sur le code fixe ; `key` = clé des diapos, sinon il faut être l'auteur */
+  openLive?(code: string, key?: string): Promise<string>
+  /** Le prochain lancement repartira d'une session vide */
+  resetPresentation?(id: string): Promise<void>
 }

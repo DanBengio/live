@@ -6,8 +6,17 @@ import { computeScores } from '../lib/scoring'
 import { Stage } from '../components/Stage'
 import type { Item, Question, Session } from '../types'
 
-export default function Host() {
-  const { code } = useParams()
+interface Props {
+  /** Mode diapo PowerPoint : code fixe et diapo à afficher ('accueil', 'fin' ou identifiant d'une activité) */
+  code?: string
+  slide?: string
+}
+
+export default function Host(props: Props) {
+  const params = useParams()
+  const code = props.code ?? params.code
+  const slide = props.slide
+  const ppt = slide !== undefined
   const uid = useUid()
   const session = useSession(code)
   const participants = useParticipants(code)
@@ -15,7 +24,8 @@ export default function Host() {
   const answers = useAnswers(code, item?.id ?? null)
   const questions = useQuestions(code, !!session && session.status !== 'lobby')
   const now = useNow(200)
-  const isHost = !!session && !!uid && session.hostId === uid
+  // en mode diapo, la clé de l'adresse a déjà été vérifiée par le serveur
+  const isHost = !!session && (ppt || (!!uid && session.hostId === uid))
 
   const answersRef = useRef(answers)
   answersRef.current = answers
@@ -48,6 +58,38 @@ export default function Host() {
   const showResults = () => update({ phase: 'results', timerEndsAt: Math.min(sessionRef.current?.timerEndsAt ?? Date.now(), Date.now()) })
   const showLeaderboard = () => update({ phase: 'leaderboard' })
   const backToQuestion = () => update({ phase: session?.questionStartedAt ? 'results' : 'question' })
+
+  // Mode diapo : afficher la diapo met la salle sur la bonne activité.
+  // Uniquement quand la diapo apparaît (chargement, retour au premier plan), pour ne pas
+  // se battre avec une autre diapo restée ouverte en arrière-plan.
+  const syncSlide = () => {
+    const s = sessionRef.current
+    if (!s || slide === undefined || document.visibilityState === 'hidden') return
+    const index = s.items.findIndex((i) => i.id === slide)
+    if (slide === 'fin') {
+      if (s.status !== 'ended') update({ status: 'ended', phase: 'leaderboard' })
+    } else if (slide === 'accueil') {
+      if (s.status !== 'lobby') update({ status: 'lobby', currentIndex: -1, phase: 'question', questionStartedAt: null, timerEndsAt: null })
+    } else if (index >= 0 && (s.status !== 'active' || s.currentIndex !== index)) {
+      update({ status: 'active', ...stateFor(index, s.items) })
+    }
+  }
+  const syncedRef = useRef(false)
+  useEffect(() => {
+    if (!ppt || !session || syncedRef.current) return
+    syncedRef.current = true
+    syncSlide()
+  }, [ppt, session]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!ppt) return
+    const h = () => syncSlide()
+    document.addEventListener('visibilitychange', h)
+    window.addEventListener('focus', h)
+    return () => {
+      document.removeEventListener('visibilitychange', h)
+      window.removeEventListener('focus', h)
+    }
+  }) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fin du chrono → résultats automatiquement
   useEffect(() => {
@@ -93,7 +135,7 @@ export default function Host() {
 
   // Raccourcis clavier : ← →, espace = action principale
   useEffect(() => {
-    if (!isHost) return
+    if (!isHost || ppt) return
     const h = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.repeat) return
@@ -129,6 +171,35 @@ export default function Host() {
         <Link to="/">← Accueil</Link>
       </div>
     )
+
+  if (ppt) {
+    // en diapo, seul le déroulé du quiz se pilote ici ; « Suivant » appartient à PowerPoint
+    const quiz = session.status === 'active' && item?.type === 'quiz' && session.phase !== 'leaderboard'
+    const index = session.items.findIndex((i) => i.id === slide)
+    const isItem = slide !== 'accueil' && slide !== 'fin'
+    const missing = isItem && index < 0
+    const outOfSync = missing || (isItem && (session.status !== 'active' || session.currentIndex !== index))
+    return (
+      <>
+        <Stage session={session} participants={participants} answers={answers} questions={questions} now={now} />
+        {(quiz || outOfSync) && (
+          <div className="slidebar" onMouseDown={(e) => e.preventDefault()}>
+            {outOfSync ? (
+              <button className="btn btn-primary" onClick={syncSlide}>
+                {missing ? 'Activité supprimée de la présentation' : 'Afficher cette activité'}
+              </button>
+            ) : (
+              action && (
+                <button className="btn btn-primary" onClick={action.run}>
+                  {action.label}
+                </button>
+              )
+            )}
+          </div>
+        )}
+      </>
+    )
+  }
 
   if (!isHost) {
     return (

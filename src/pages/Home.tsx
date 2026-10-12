@@ -121,6 +121,7 @@ export default function Home() {
             {list.map((p) => (
               <div className="card pres-card" key={p.id}>
                 <h3>{p.title}</h3>
+                {p.code && <div className="muted">Code {p.code}</div>}
                 <div className="muted">
                   {p.items.length} activité{p.items.length > 1 ? 's' : ''} ·{' '}
                   {p.items.map((it) => ITEM_ICONS[it.type]).join(' ')}
@@ -132,6 +133,11 @@ export default function Home() {
                   <button className="btn" onClick={() => nav(`/edit/${p.id}`)}>
                     Modifier
                   </button>
+                  {p.code && (
+                    <button className="btn" onClick={() => nav(`/powerpoint/${p.id}`)} disabled={!p.items.length}>
+                      PowerPoint
+                    </button>
+                  )}
                   <button className="btn btn-ghost btn-danger" onClick={() => remove(p)}>
                     Supprimer
                   </button>

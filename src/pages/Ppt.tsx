@@ -1,0 +1,36 @@
+import { useEffect, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
+import { backend } from '../backend'
+import Host from './Host'
+
+/**
+ * Page à coller dans une diapo PowerPoint (module Web Viewer).
+ * Adresse : /ppt/<code fixe>/<diapo>?k=<clé>
+ *   accueil          → QR code + code à 6 chiffres
+ *   <id d'activité>  → cette activité (suit l'activité même si on change l'ordre)
+ *   fin              → remerciements et classement
+ * Afficher la diapo suffit : les téléphones passent tout seuls à la bonne activité.
+ */
+export default function Ppt() {
+  const { code, slide } = useParams()
+  const [params] = useSearchParams()
+  const key = params.get('k') ?? ''
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  useEffect(() => {
+    if (!code || !backend.openLive) return setState('error')
+    backend.openLive(code, key).then(
+      () => setState('ready'),
+      () => setState('error'),
+    )
+  }, [code, key])
+
+  if (state === 'loading') return <div className="page"><span className="spinner" /></div>
+  if (state === 'error' || !slide)
+    return (
+      <div className="page">
+        <p>Diapo introuvable : vérifiez l’adresse copiée depuis la page PowerPoint du site.</p>
+      </div>
+    )
+  return <Host code={code} slide={slide} />
+}

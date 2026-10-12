@@ -33,7 +33,12 @@ function myUid(): string {
   }
 }
 const UID = myUid()
-const HEADERS = { 'content-type': 'application/json', 'x-uid': UID }
+const HEADERS: Record<string, string> = { 'content-type': 'application/json', 'x-uid': UID }
+
+/** Diapo PowerPoint : la clé de l'adresse donne les droits d'animateur sur sa session */
+function setSlideKey(key: string) {
+  HEADERS['x-key'] = key
+}
 
 let info: Info = {}
 const ready: Promise<void> = fetch('/api/info', { headers: HEADERS })
@@ -152,4 +157,10 @@ export const httpBackend: Backend = {
       cb,
       [],
     ),
+
+  openLive: async (code, key) => {
+    if (key) setSlideKey(key)
+    return (await call<{ code: string }>('POST', `/api/live/${encodeURIComponent(code)}`)).code
+  },
+  resetPresentation: (id) => call('POST', `/api/presentations/${encodeURIComponent(id)}/reset`),
 }

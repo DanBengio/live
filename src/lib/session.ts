@@ -5,6 +5,8 @@ import { sessionCode } from './ids'
 export { joinUrl, joinHost } from './origin'
 
 export async function launchSession(pres: Presentation, hostId: string): Promise<string> {
+  // serveur Node : session sur le code fixe de la présentation (le même que dans les diapos)
+  if (pres.code && backend.openLive) return backend.openLive(pres.code)
   const code = sessionCode()
   const session: Session = {
     code,
