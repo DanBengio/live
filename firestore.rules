@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    // Présentations : privées à leur auteur
+    match /presentations/{presId} {
+      allow read, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // Sessions : lisibles par tous (les participants ont le code),
+    // modifiables uniquement par l'animateur
+    match /sessions/{code} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.hostId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.hostId == request.auth.uid;
+
+      function isHost() {
+        return signedIn()
+          && get(/databases/$(database)/documents/sessions/$(code)).data.hostId == request.auth.uid;
+      }
+
+      match /participants/{pid} {
+        allow read: if true;
+        allow create: if signedIn() && pid == request.auth.uid
+          && request.resource.data.score == 0 && request.resource.data.rank == null;
+        // le participant peut changer son nom ; l'animateur peut changer score et rang
+        allow update: if isHost()
+          || (signedIn() && pid == request.auth.uid
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']));
+      }
+
+      match /answers/{aid} {
+        allow read: if true;
+        // une seule réponse par participant et par item : création uniquement
+        allow create: if signedIn() && request.resource.data.pid == request.auth.uid;
+      }
+
+      match /questions/{qid} {
+        allow read: if true;
+        allow create: if signedIn() && request.resource.data.pid == request.auth.uid
+          && request.resource.data.votes == 0 && request.resource.data.voters.size() == 0;
+        // votes : n'importe quel participant ; modération : animateur
+        allow update: if isHost()
+          || (signedIn()
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voters', 'votes'])
+              && request.resource.data.votes == request.resource.data.voters.size());
+      }
+    }
+  }
+}
