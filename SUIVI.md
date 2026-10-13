@@ -16,6 +16,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [ ] **EN COURS** : test en conditions réelles sur le site en ligne (téléphones en 4G, plusieurs personnes).
 - [x] Module PowerPoint Live en ligne et installé sur le PC de Dan (12/10). Testé en vrai dans PowerPoint : en diaporama, la salle passe à la question 5 à 10 secondes après l'arrivée de la diapo.
 - [x] Deck « Recharge tes 3 batteries - ICF & Edvantis - LIVE.pptx » (Téléchargements, 51 diapos) : 17 questions Live, code fixe 434294. Le module couvre les diapos 2, 7, 9, 14, 17, 22, 25, 29, 33 d'origine ; 9 diapos Live ajoutées (accueil, checks, coup de barre, recharge, P/E/M, énergie avant/après la pause active, choix de l'expérience). Checks P/E/M notés de 1 à 10 et phrases libres (diapos 37, 41) restent dans le chat. Script : `scripts/deck-live.cjs`.
+- [x] Salle 2 (13/10) pour deux conférences en parallèle : « Recharge tes 3 batteries · ICF & Edvantis · Salle 2 », code fixe 989539, mêmes 17 questions. Fichiers dans Téléchargements : « ... - LIVE salle 2.pptx » et « Live sur Mac - salle 2.txt ». Vérifié dans PowerPoint. Les deux salles sont indépendantes : réponses et remise à zéro séparées.
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
@@ -82,3 +83,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **13 octobre 2026** : le module marche sur le Mac de l'associée. Le texte débordait de la diapo : correctif d'échelle 16:9 et barres compactes, poussé, à déployer hors atelier.
 - **13 octobre 2026** : correctif 16:9 mis en ligne par Dan. Ajout de « Modifier ma réponse » (sondage, nuage de mots), testé en local, poussé, à déployer.
 - **13 octobre 2026** : « Modifier ma réponse » en ligne (vérifié). Test de charge à 105 participants réussi.
+- **13 octobre 2026, fin d'après-midi** : création de la salle 2 (code 989539) pour une conférence en parallèle, deck et guide Mac générés. Dan doit ouvrir le lien « adopter » de la salle 2.
