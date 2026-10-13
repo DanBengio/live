@@ -30,7 +30,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 **Claude** : selon le retour du Mac, corriger le module ou la procédure ; ajuster les questions si Dan le demande.
 
-**À mettre en ligne (hors atelier)** : correctif d'affichage des diapos (13/10). Sur le Mac de l'associée, le module marche mais le texte dépassait de la diapo. Désormais chaque diapo Live est dessinée en 16:9 fixe puis mise à l'échelle (`src/components/Fit.tsx`), et les sondages de plus de 6 réponses passent en lignes compactes. Déploiement : git pull + Build + Run, puis rouvrir le fichier PowerPoint. Ne pas déployer pendant un atelier (le site redémarre).
+**À mettre en ligne (hors atelier)** : « Modifier ma réponse » (13/10). Pour les sondages et nuages de mots, le participant peut changer sa réponse tant que la question est à l'écran ; le quiz garde la première réponse (points à la vitesse). Déploiement : git pull + Build + Run.
 
 **Non urgent** : la ligne d'installation Mac a été ajoutée à la page PowerPoint du site, mais pas encore mise en ligne (git pull + Build + Run au prochain déploiement).
 
@@ -50,6 +50,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - Dépôt GitHub public : aucun secret dans le code, les données restent sur le serveur.
 - PowerPoint : option B choisie le 12/10. Module gratuit Microsoft « Web Viewer » dans chaque diapo. Chaque présentation a un **code fixe** à 6 chiffres. Une adresse par diapo : `/ppt/<code>/<accueil | id de l'activité | fin>?k=<clé>`. Afficher la diapo fait passer les téléphones à l'activité. Les adresses suivent l'activité même si on change l'ordre. La page « PowerPoint » du site (bouton sur chaque présentation) donne les adresses à copier et le bouton « Nouvel atelier : remettre à zéro ». La salle repart aussi vide d'elle-même 12 h après le début de l'atelier précédent.
 - 12/10 : option A retenue (Dan sur PowerPoint Windows). Module « Live » maison : complément de contenu Office, manifeste `public/addin/manifest.xml` (Id 84c365e6-a511-440e-8849-ace119baf7eb), installé par `installer-module-live.bat` (clé de registre HKCU WEFDeveloper). Chaque module garde dans le fichier l'adresse de sa diapo Live et l'identifiant de sa diapo PowerPoint ; en diaporama, la salle passe à l'activité quand sa diapo est à l'écran. Pour une amie : même installateur, puis ses propres présentations sur le site.
+- Changer sa réponse : sondage et nuage de mots oui (tant que l'activité est à l'écran), quiz non.
 - Mac : **testé le 13/10 par l'associée de Dan, le module fonctionne** (modules posés sous Windows reconnus). Installation du module en copiant le manifeste dans `~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/wef/` (commande Terminal sur la page PowerPoint du site). Non testé : les modules posés sous Windows (référence « developer / Registry ») pourraient devoir être reposés sur Mac ; le guide contient les 18 adresses de secours.
 - Lien `/adopter/<id>?k=<clé>` : range dans « Mes présentations » une présentation créée par Claude.
 - ⚠️ 12/10 : Web Viewer a été retiré par Microsoft en décembre 2024, il ne fonctionne plus. Il faut soit notre propre module PowerPoint (recommandé, que Claude pourrait insérer directement dans le fichier), soit SparkEmbed (payant, environ 6 $). Les adresses `/ppt/...` restent valables dans les deux cas.
@@ -80,3 +81,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **12 octobre 2026, nuit (fin bis)** : module testé dans PowerPoint, deck ICF & Edvantis livré avec le module posé. Dan a déjà répondu depuis son téléphone pendant les tests : remettre à zéro avant l'atelier.
 - **12 octobre 2026, nuit** : l'associé de Dan anime sur Mac le 13/10. Guide d'installation Mac et adresses de secours préparés.
 - **13 octobre 2026** : le module marche sur le Mac de l'associée. Le texte débordait de la diapo : correctif d'échelle 16:9 et barres compactes, poussé, à déployer hors atelier.
+- **13 octobre 2026** : correctif 16:9 mis en ligne par Dan. Ajout de « Modifier ma réponse » (sondage, nuage de mots), testé en local, poussé, à déployer.

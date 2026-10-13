@@ -18,14 +18,36 @@ export function Feedback({ big, title, sub, children, tone }: { big: string; tit
 
 type Submit = (value: number[] | string[]) => void
 
+function ChangeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button className="btn" style={{ marginTop: 16 }} onClick={onClick}>
+      ✏️ Modifier ma réponse
+    </button>
+  )
+}
+
 export function PollAnswer({ item, answer, onSubmit }: { item: PollItem; answer?: Answer; onSubmit: Submit }) {
   const [sel, setSel] = useState<number[]>([])
-  if (answer) {
+  const [editing, setEditing] = useState(false)
+  const send: Submit = (v) => {
+    setEditing(false)
+    onSubmit(v)
+  }
+  if (answer && !editing) {
     const chosen = (answer.value as number[]).map((i) => item.options[i]).join(', ')
-    return <Feedback big="✅" title="Réponse envoyée" sub={chosen} />
+    return (
+      <Feedback big="✅" title="Réponse envoyée" sub={chosen}>
+        <ChangeButton
+          onClick={() => {
+            setSel(answer.value as number[])
+            setEditing(true)
+          }}
+        />
+      </Feedback>
+    )
   }
   const toggle = (i: number) => {
-    if (!item.multiple) return onSubmit([i])
+    if (!item.multiple) return send([i])
     setSel((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))
   }
   return (
@@ -40,7 +62,7 @@ export function PollAnswer({ item, answer, onSubmit }: { item: PollItem; answer?
         ))}
       </div>
       {item.multiple && (
-        <button className="btn btn-primary btn-lg" disabled={!sel.length} onClick={() => onSubmit([...sel].sort())}>
+        <button className="btn btn-primary btn-lg" disabled={!sel.length} onClick={() => send([...sel].sort((x, y) => x - y))}>
           Envoyer
         </button>
       )}
@@ -50,14 +72,28 @@ export function PollAnswer({ item, answer, onSubmit }: { item: PollItem; answer?
 
 export function WordAnswer({ item, answer, onSubmit }: { item: WordCloudItem; answer?: Answer; onSubmit: Submit }) {
   const [words, setWords] = useState<string[]>(() => Array.from({ length: item.maxWords }, () => ''))
-  if (answer) return <Feedback big="☁️" title="Merci !" sub={(answer.value as string[]).join(' · ')} />
+  const [editing, setEditing] = useState(false)
+  if (answer && !editing)
+    return (
+      <Feedback big="☁️" title="Merci !" sub={(answer.value as string[]).join(' · ')}>
+        <ChangeButton
+          onClick={() => {
+            const prev = answer.value as string[]
+            setWords(Array.from({ length: item.maxWords }, (_, i) => prev[i] ?? ''))
+            setEditing(true)
+          }}
+        />
+      </Feedback>
+    )
   const valid = [...new Set(words.map(normalizeWord).filter(Boolean))]
   return (
     <form
       className="stack"
       onSubmit={(e) => {
         e.preventDefault()
-        if (valid.length) onSubmit(valid)
+        if (!valid.length) return
+        setEditing(false)
+        onSubmit(valid)
       }}
     >
       {words.map((w, i) => (

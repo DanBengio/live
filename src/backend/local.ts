@@ -113,8 +113,11 @@ export const localBackend: Backend = {
   submitAnswer: (code, a) =>
     mutate((db) => {
       db.answers[code] ??= {}
-      // une réponse par participant et par item
-      db.answers[code][`${a.itemId}_${a.pid}`] ??= a
+      // une réponse par participant et par item ; sondage et nuage de mots modifiables
+      const type = db.sessions[code]?.items.find((i) => i.id === a.itemId)?.type
+      const k = `${a.itemId}_${a.pid}`
+      if (type === 'poll' || type === 'wordcloud') db.answers[code][k] = a
+      else db.answers[code][k] ??= a
     }),
   subscribeAnswers: (code, itemId, cb) =>
     subscribe(

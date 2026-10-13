@@ -305,7 +305,12 @@ app.post('/api/sessions/:code/answers', (req, res) => {
   if (!a || !uid || a.pid !== uid || !a.itemId || !Array.isArray(a.value)) return res.status(403).json({ error: 'Refusé' })
   const store = (db.answers[s.code] ??= {})
   const key = `${a.itemId}_${uid}`
-  if (store[key]) return res.status(409).json({ error: 'Déjà répondu' })
+  // Sondage et nuage de mots : on peut changer d'avis tant que l'activité est à l'écran.
+  // Quiz : la première réponse compte (les points dépendent de la vitesse).
+  const item = s.items?.find((i) => i.id === a.itemId)
+  const current = s.status === 'active' && s.items?.[s.currentIndex]?.id === a.itemId
+  const changeable = current && (item?.type === 'poll' || item?.type === 'wordcloud')
+  if (store[key] && !changeable) return res.status(409).json({ error: 'Déjà répondu' })
   store[key] = {
     id: key,
     pid: uid,
