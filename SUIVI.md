@@ -19,11 +19,12 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] Salle 2 (13/10) pour deux conférences en parallèle : « Recharge tes 3 batteries · ICF & Edvantis · Salle 2 », code fixe 989539, mêmes 17 questions. Fichiers dans Téléchargements : « ... - LIVE salle 2.pptx » et « Live sur Mac - salle 2.txt ». Vérifié dans PowerPoint. Les deux salles sont indépendantes : réponses et remise à zéro séparées.
 - [x] Page PowerPoint du site (13/10) : déposer son .pptx (gardé sur le serveur dans `server/data/decks/`), choisir pour chaque question « Remplace la diapo n » ou « Après la diapo n », puis télécharger le fichier complet avec les modules posés (généré dans le navigateur, `src/lib/pptx.ts`). Sans fichier : téléchargement des seules diapos Live. Bouton « Dupliquer » sur l'accueil : mêmes questions, fichier et emplacements, nouveau code. Testé en local avec le deck ICF : résultat identique au fichier fait à la main, s'ouvre dans PowerPoint.
 - [x] Liens coach (13/10) : `/coach/<id>?k=<clé coach>`, sans compte. Le coach clique « Nouvelle conférence » (nouveau code, nouvelle clé de diapos, salle vide ; l'ancien code est archivé avec ses résultats et ne pilote plus rien), puis « Télécharger ma présentation » (fichier complet). Créé depuis la page PowerPoint de l'animateur (« Lien pour le coach »). Le lien « adopter » accepte aussi la clé coach. Testé en local.
+- [x] 13/10 : présentations coachs ICF créées en ligne (Mona, Sakina, Bahaâ), chacune avec le PowerPoint ICF et ses 18 emplacements ; page coach de Mona testée en ligne (téléchargement OK). Liens « adopter » donnés à Dan pour les voir dans « Mes présentations ».
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**À mettre en ligne (hors atelier)** : page PowerPoint complète, Dupliquer, et liens coach. git pull + Build + Run (le Build installe pptxgenjs et jszip). Ensuite Claude crée les 3 présentations des coachs ICF (Mona, Sakina, Bahaâ) sur le site avec `scripts/coachs-icf.cjs` et envoie leurs liens.
+**Dan** : envoyer à Mona, Sakina et Bahaâ leur lien coach (donnés dans la conversation du 13/10, jamais dans ce fichier public). Chacune : installer le module une fois, puis avant chaque conférence « Nouvelle conférence » → « Télécharger ma présentation ».
 
 **Demain matin, 13 octobre — Dan, dans l'ordre :**
 1. Ouvrir le lien « adopter » (dans la conversation du 12/10) s'il ne l'a pas encore fait : il range « Recharge tes 3 batteries · ICF & Edvantis » dans « Mes présentations ».
@@ -90,3 +91,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **13 octobre 2026, fin d'après-midi** : création de la salle 2 (code 989539) pour une conférence en parallèle, deck et guide Mac générés. Dan doit ouvrir le lien « adopter » de la salle 2.
 - **13 octobre 2026, soir** : Dan veut télécharger toute sa présentation depuis le site, sans pose manuelle. Fait : dépôt du .pptx, emplacements, téléchargement complet, Dupliquer. Poussé, à déployer.
 - **13 octobre 2026, soir** : conférence ICF avec 3 coachs (Mona, Sakina, Bahaâ), 3 conférences chacune. Ajout des liens coach avec nouveau code par conférence. Poussé, à déployer.
+- **13 octobre 2026, soir** : liens coach en ligne, 3 présentations coachs créées et vérifiées.
