@@ -351,7 +351,7 @@ label.field > span {
   margin-bottom: 20px;
 }
 .stage-header h1 {
-  font-size: clamp(26px, 3.6vw, 52px);
+  font-size: clamp(26px, 3.6cqw, 52px);
   font-weight: 800;
   letter-spacing: -0.01em;
   flex: 1;
@@ -367,7 +367,7 @@ label.field > span {
   justify-content: space-between;
   align-items: center;
   color: var(--muted);
-  font-size: clamp(14px, 1.4vw, 20px);
+  font-size: clamp(14px, 1.4cqw, 20px);
   margin-top: 12px;
 }
 .join-badge {
@@ -378,7 +378,7 @@ label.field > span {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 8px 12px;
-  font-size: clamp(13px, 1.3vw, 18px);
+  font-size: clamp(13px, 1.3cqw, 18px);
 }
 .join-badge .code {
   font-weight: 800;
@@ -407,10 +407,10 @@ label.field > span {
   }
 }
 .lobby .how {
-  font-size: clamp(18px, 2vw, 28px);
+  font-size: clamp(18px, 2cqw, 28px);
 }
 .lobby .how .code {
-  font-size: clamp(56px, 9vw, 140px);
+  font-size: clamp(56px, 9cqw, 140px);
   font-weight: 900;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -437,7 +437,7 @@ label.field > span {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 6px 14px;
-  font-size: clamp(13px, 1.2vw, 18px);
+  font-size: clamp(13px, 1.2cqw, 18px);
   animation: pop 0.25s ease-out;
 }
 @keyframes pop {
@@ -468,7 +468,7 @@ label.field > span {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: clamp(16px, 1.9vw, 28px);
+  font-size: clamp(16px, 1.9cqw, 28px);
   font-weight: 600;
 }
 .bar-label .swatch {
@@ -486,7 +486,7 @@ label.field > span {
   color: var(--ok);
 }
 .bar-track {
-  height: clamp(18px, 2.4vw, 34px);
+  height: clamp(18px, 2.4cqw, 34px);
   background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   overflow: hidden;
@@ -502,7 +502,7 @@ label.field > span {
 }
 
 .big-count {
-  font-size: clamp(16px, 1.6vw, 22px);
+  font-size: clamp(16px, 1.6cqw, 22px);
   color: var(--muted);
 }
 
@@ -517,7 +517,7 @@ label.field > span {
 .quiz-tile {
   border-radius: 18px;
   padding: 24px;
-  font-size: clamp(20px, 2.4vw, 36px);
+  font-size: clamp(20px, 2.4cqw, 36px);
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -547,7 +547,7 @@ label.field > span {
   min-width: 120px;
 }
 .timer .num {
-  font-size: clamp(40px, 5vw, 80px);
+  font-size: clamp(40px, 5cqw, 80px);
   font-weight: 900;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -582,7 +582,7 @@ label.field > span {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(22px, 3vw, 44px);
+  font-size: clamp(22px, 3cqw, 44px);
   color: var(--muted);
   text-align: center;
 }
@@ -607,7 +607,7 @@ label.field > span {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px 20px;
-  font-size: clamp(16px, 1.8vw, 26px);
+  font-size: clamp(16px, 1.8cqw, 26px);
   animation: slidein 0.4s ease-out both;
 }
 .lb-row:nth-child(1) {
@@ -654,7 +654,7 @@ label.field > span {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 18px;
-  font-size: clamp(15px, 1.6vw, 24px);
+  font-size: clamp(15px, 1.6cqw, 24px);
 }
 .qa-item.answered {
   opacity: 0.5;
@@ -943,4 +943,32 @@ label.field > span {
   border-radius: 8px;
   background: rgba(17, 24, 39, 0.9);
   font-size: 0.85rem;
+}
+
+/* Toile 16:9 des diapos PowerPoint (voir components/Fit.tsx) */
+.fit {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 720px;
+  transform-origin: 0 0;
+  container-type: size;
+  overflow: hidden;
+}
+
+/* Beaucoup de réponses (ex. notes de 1 à 10) : libellé et barre sur une seule ligne */
+.bars.compact {
+  gap: 8px;
+}
+.bars.compact .bar-row {
+  grid-template-columns: minmax(0, 40%) 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.bars.compact .bar-label {
+  font-size: clamp(14px, 1.6cqw, 24px);
+}
+.bars.compact .bar-track {
+  height: clamp(14px, 1.9cqw, 28px);
 }

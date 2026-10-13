@@ -4,6 +4,7 @@ import { backend } from '../backend'
 import { useAnswers, useNow, useParticipants, useQuestions, useSession, useUid } from '../hooks'
 import { computeScores } from '../lib/scoring'
 import { Stage } from '../components/Stage'
+import { Fit } from '../components/Fit'
 import type { Item, Question, Session } from '../types'
 
 interface Props {
@@ -193,7 +194,9 @@ export default function Host(props: Props) {
     const outOfSync = missing || (isItem && (session.status !== 'active' || session.currentIndex !== index))
     return (
       <>
-        <Stage session={session} participants={participants} answers={answers} questions={questions} now={now} />
+        <Fit>
+          <Stage session={session} participants={participants} answers={answers} questions={questions} now={now} />
+        </Fit>
         {(quiz || outOfSync) && (
           <div className="slidebar" onMouseDown={(e) => e.preventDefault()}>
             {outOfSync ? (

@@ -22,7 +22,7 @@ export function Bars({ options, answers, highlight }: Props) {
   const total = answers.length
   return (
     <>
-      <div className="bars">
+      <div className={'bars' + (options.length > 6 ? ' compact' : '')}>
         {options.map((opt, i) => {
           const dim = highlight !== undefined && highlight !== i
           return (
