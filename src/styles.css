@@ -972,3 +972,56 @@ label.field > span {
 .bars.compact .bar-track {
   height: clamp(14px, 1.9cqw, 28px);
 }
+
+/* Page PowerPoint : emplacements des questions dans le fichier de l'animateur */
+.page > .card + .card,
+.page > .card + details.card,
+.page > details.card {
+  margin-top: 14px;
+}
+.placements {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.placement {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) 190px minmax(0, 1.4fr);
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.placement.unset {
+  opacity: 0.7;
+}
+.placement .what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.placement .what .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.placement select.input {
+  width: 100%;
+  min-width: 0;
+}
+.page .error {
+  color: #f87171;
+}
+details.card summary {
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .placement {
+    grid-template-columns: 1fr;
+  }
+}
+.page .card .btn-lg {
+  max-width: 100%;
+  white-space: normal;
+}

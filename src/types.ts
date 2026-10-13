@@ -44,6 +44,19 @@ export interface Presentation {
   code?: string
   /** Clé secrète des adresses de diapos PowerPoint */
   slideKey?: string
+  /** Fichier PowerPoint de l'animateur, gardé sur le serveur */
+  deck?: { name: string; size: number; at: number }
+  /**
+   * Où va chaque diapo Live dans ce fichier ('accueil', 'fin' ou identifiant d'activité).
+   * cover : le module recouvre la diapo n° at ; after : nouvelle diapo après la diapo n° at (0 = au début).
+   * null ou absent : pas dans le PowerPoint.
+   */
+  placements?: Record<string, Placement | null>
+}
+
+export interface Placement {
+  mode: 'cover' | 'after'
+  at: number
 }
 
 export type SessionStatus = 'lobby' | 'active' | 'ended'

@@ -150,13 +150,88 @@ app.put('/api/presentations/:id', (req, res) => {
     code: existing?.code,
     slideKey: existing?.slideKey,
     resetAt: existing?.resetAt ?? 0,
+    deck: existing?.deck,
+    placements: p.placements && typeof p.placements === 'object' ? p.placements : existing?.placements,
   })
   save()
   res.json(db.presentations[p.id])
 })
+
+// Fichier PowerPoint de l'animateur, gardé sur le serveur pour pouvoir le retélécharger
+// complet (avec les diapos Live) à tout moment, depuis n'importe quel ordinateur.
+const DECKS = path.join(__dirname, 'data', 'decks')
+const deckFile = (id) => path.join(DECKS, `${id.replace(/[^\w-]/g, '')}.pptx`)
+const ownPres = (req, res) => {
+  const p = db.presentations[req.params.id]
+  if (!p || p.ownerId !== uidOf(req)) {
+    res.status(404).json({ error: 'Présentation introuvable' })
+    return null
+  }
+  return p
+}
+app.put('/api/presentations/:id/deck', express.raw({ type: '*/*', limit: '80mb' }), (req, res) => {
+  const p = ownPres(req, res)
+  if (!p) return
+  const buf = req.body
+  // un .pptx est une archive zip : « PK » en tête
+  if (!Buffer.isBuffer(buf) || buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4b) {
+    return res.status(400).json({ error: 'Ce fichier n’est pas un PowerPoint (.pptx)' })
+  }
+  fs.mkdirSync(DECKS, { recursive: true })
+  fs.writeFileSync(deckFile(p.id), buf)
+  p.deck = { name: str(req.get('x-file-name') ? decodeURIComponent(req.get('x-file-name')) : 'presentation.pptx', 200), size: buf.length, at: Date.now() }
+  p.placements = {} // nouveau fichier : les questions sont à replacer
+  save()
+  res.json(p)
+})
+app.get('/api/presentations/:id/deck', (req, res) => {
+  const p = ownPres(req, res)
+  if (!p) return
+  if (!p.deck || !fs.existsSync(deckFile(p.id))) return res.status(404).json({ error: 'Aucun fichier PowerPoint' })
+  res.set('Cache-Control', 'no-store')
+  res.type('application/vnd.openxmlformats-officedocument.presentationml.presentation').send(fs.readFileSync(deckFile(p.id)))
+})
+app.delete('/api/presentations/:id/deck', (req, res) => {
+  const p = ownPres(req, res)
+  if (!p) return
+  fs.rmSync(deckFile(p.id), { force: true })
+  delete p.deck
+  p.placements = {}
+  save()
+  res.json(p)
+})
+
+// Dupliquer : mêmes questions, même fichier PowerPoint et mêmes emplacements, nouveau code
+// (par exemple pour deux conférences en parallèle)
+app.post('/api/presentations/:id/duplicate', (req, res) => {
+  const p = ownPres(req, res)
+  if (!p) return
+  let id
+  do id = crypto.randomBytes(8).toString('base64url').replace(/[^a-z0-9]/gi, '').slice(0, 10).toLowerCase()
+  while (!id || db.presentations[id])
+  const now = Date.now()
+  const copy = ensureFixed({
+    id,
+    ownerId: p.ownerId,
+    title: str(`${p.title} (copie)`, 120),
+    items: structuredClone(p.items),
+    placements: structuredClone(p.placements ?? {}),
+    createdAt: now,
+    updatedAt: now,
+    resetAt: 0,
+  })
+  if (p.deck && fs.existsSync(deckFile(p.id))) {
+    fs.copyFileSync(deckFile(p.id), deckFile(id))
+    copy.deck = { ...p.deck }
+  }
+  db.presentations[id] = copy
+  save()
+  res.json(copy)
+})
 app.delete('/api/presentations/:id', (req, res) => {
   const existing = db.presentations[req.params.id]
   if (existing && existing.ownerId !== uidOf(req)) return res.status(403).json({ error: 'Refusé' })
+  if (existing) fs.rmSync(deckFile(existing.id), { force: true })
   delete db.presentations[req.params.id]
   save()
   res.json({ ok: true })

@@ -43,4 +43,10 @@ export interface Backend {
   resetPresentation?(id: string): Promise<void>
   /** Range dans « Mes présentations » une présentation dont on a la clé */
   adoptPresentation?(id: string, key: string): Promise<void>
+  /** Fichier PowerPoint de l'animateur (dépôt, lecture, retrait) */
+  uploadDeck?(id: string, file: File): Promise<Presentation>
+  downloadDeck?(id: string): Promise<ArrayBuffer>
+  removeDeck?(id: string): Promise<Presentation>
+  /** Copie avec un nouveau code (questions, fichier et emplacements compris) */
+  duplicatePresentation?(id: string): Promise<Presentation>
 }

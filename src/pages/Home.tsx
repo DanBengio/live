@@ -65,6 +65,12 @@ export default function Home() {
     const c = await launchSession(p, uid)
     nav(`/host/${c}`)
   }
+  // même contenu (questions, PowerPoint, emplacements), nouveau code : une 2e salle en parallèle
+  const duplicate = async (p: Presentation) => {
+    if (!backend.duplicatePresentation) return
+    const copy = await backend.duplicatePresentation(p.id)
+    nav(`/edit/${copy.id}`)
+  }
   const remove = async (p: Presentation) => {
     if (!confirm(`Supprimer « ${p.title} » ?`)) return
     await backend.deletePresentation(p.id)
@@ -136,6 +142,11 @@ export default function Home() {
                   {p.code && (
                     <button className="btn" onClick={() => nav(`/powerpoint/${p.id}`)} disabled={!p.items.length}>
                       PowerPoint
+                    </button>
+                  )}
+                  {p.code && backend.duplicatePresentation && (
+                    <button className="btn" onClick={() => duplicate(p)} title="Même contenu, nouveau code (salle en parallèle)">
+                      Dupliquer
                     </button>
                   )}
                   <button className="btn btn-ghost btn-danger" onClick={() => remove(p)}>

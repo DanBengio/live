@@ -163,6 +163,25 @@ export const httpBackend: Backend = {
     return (await call<{ code: string }>('POST', `/api/live/${encodeURIComponent(code)}`)).code
   },
   resetPresentation: (id) => call('POST', `/api/presentations/${encodeURIComponent(id)}/reset`),
+  uploadDeck: async (id, file) => {
+    await ready
+    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/deck`, {
+      method: 'PUT',
+      headers: { 'x-uid': UID, 'content-type': 'application/octet-stream', 'x-file-name': encodeURIComponent(file.name) },
+      body: file,
+    })
+    const body = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(body.error ?? `${r.status}`)
+    return body as Presentation
+  },
+  downloadDeck: async (id) => {
+    await ready
+    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/deck`, { headers: { 'x-uid': UID }, cache: 'no-store' })
+    if (!r.ok) throw new Error(`${r.status}`)
+    return r.arrayBuffer()
+  },
+  removeDeck: (id) => call<Presentation>('DELETE', `/api/presentations/${encodeURIComponent(id)}/deck`),
+  duplicatePresentation: (id) => call<Presentation>('POST', `/api/presentations/${encodeURIComponent(id)}/duplicate`),
   adoptPresentation: (id, key) => {
     setSlideKey(key)
     return call('POST', `/api/presentations/${encodeURIComponent(id)}/adopt`)
