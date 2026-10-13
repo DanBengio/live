@@ -23,7 +23,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Prochaine action
 
-**À mettre en ligne (hors atelier)** : page PowerPoint complète, Dupliquer, et liens coach. git pull + Build + Run (le Build installe pptxgenjs et jszip). Ensuite Claude crée les 3 présentations des coachs ICF (Mona, Sakina, Bahaâ) sur le site avec le script `coaches.js` (dossier temporaire de la session, mapping des diapos ICF) et envoie leurs liens.
+**À mettre en ligne (hors atelier)** : page PowerPoint complète, Dupliquer, et liens coach. git pull + Build + Run (le Build installe pptxgenjs et jszip). Ensuite Claude crée les 3 présentations des coachs ICF (Mona, Sakina, Bahaâ) sur le site avec `scripts/coachs-icf.cjs` et envoie leurs liens.
 
 **Demain matin, 13 octobre — Dan, dans l'ordre :**
 1. Ouvrir le lien « adopter » (dans la conversation du 12/10) s'il ne l'a pas encore fait : il range « Recharge tes 3 batteries · ICF & Edvantis » dans « Mes présentations ».
