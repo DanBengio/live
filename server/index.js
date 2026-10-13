@@ -151,6 +151,10 @@ app.put('/api/presentations/:id', (req, res) => {
     slideKey: existing?.slideKey,
     resetAt: existing?.resetAt ?? 0,
     deck: existing?.deck,
+    coachKey: existing?.coachKey,
+    coach: existing?.coach,
+    codeAt: existing?.codeAt,
+    history: existing?.history,
     placements: p.placements && typeof p.placements === 'object' ? p.placements : existing?.placements,
   })
   save()
@@ -199,6 +203,61 @@ app.delete('/api/presentations/:id/deck', (req, res) => {
   p.placements = {}
   save()
   res.json(p)
+})
+
+// ---------- Lien coach ----------
+// Un lien secret par présentation (/coach/<id>?k=<coachKey>), sans compte : le coach y télécharge
+// sa présentation complète et, avant chaque conférence, prend un nouveau code (salle vide,
+// résultats de chaque conférence gardés à part sous l'ancien code).
+const coachPres = (req, res) => {
+  const p = db.presentations[req.params.id]
+  if (!p || !p.coachKey || req.get('x-key') !== p.coachKey) {
+    res.status(404).json({ error: 'Lien invalide' })
+    return null
+  }
+  return p
+}
+const coachView = (p) => ({
+  id: p.id,
+  title: p.title,
+  coach: p.coach ?? '',
+  items: p.items,
+  code: p.code,
+  slideKey: p.slideKey,
+  deck: p.deck,
+  placements: p.placements ?? {},
+  codeAt: p.codeAt ?? p.createdAt,
+  history: p.history ?? [],
+})
+app.post('/api/presentations/:id/coach', (req, res) => {
+  const p = ownPres(req, res)
+  if (!p) return
+  if (!p.coachKey) p.coachKey = newKey() + newKey()
+  if (typeof req.body?.coach === 'string') p.coach = str(req.body.coach, 40).trim()
+  save()
+  res.json({ coachKey: p.coachKey, coach: p.coach ?? '' })
+})
+app.get('/api/coach/:id', (req, res) => {
+  const p = coachPres(req, res)
+  if (p) res.json(coachView(p))
+})
+app.get('/api/coach/:id/deck', (req, res) => {
+  const p = coachPres(req, res)
+  if (!p) return
+  if (!p.deck || !fs.existsSync(deckFile(p.id))) return res.status(404).json({ error: 'Aucun fichier PowerPoint' })
+  res.set('Cache-Control', 'no-store')
+  res.type('application/vnd.openxmlformats-officedocument.presentationml.presentation').send(fs.readFileSync(deckFile(p.id)))
+})
+app.post('/api/coach/:id/new-code', (req, res) => {
+  const p = coachPres(req, res)
+  if (!p) return
+  ;(p.history ??= []).push({ code: p.code, from: p.codeAt ?? p.createdAt, to: Date.now() })
+  p.code = freeCode()
+  p.slideKey = newKey() // les fichiers des conférences précédentes ne pilotent plus rien
+  p.codeAt = Date.now()
+  p.resetAt = 0
+  save()
+  res.json(coachView(p))
 })
 
 // Dupliquer : mêmes questions, même fichier PowerPoint et mêmes emplacements, nouveau code
@@ -294,7 +353,7 @@ app.post('/api/live/:code', (req, res) => {
 app.post('/api/presentations/:id/adopt', (req, res) => {
   const p = db.presentations[req.params.id]
   const uid = uidOf(req)
-  if (!p || !uid || req.get('x-key') !== p.slideKey) return res.status(404).json({ error: 'Présentation introuvable' })
+  if (!p || !uid || !req.get('x-key') || ![p.slideKey, p.coachKey].includes(req.get('x-key'))) return res.status(404).json({ error: 'Présentation introuvable' })
   p.ownerId = uid
   if (db.sessions[p.code]) db.sessions[p.code].hostId = uid
   save()

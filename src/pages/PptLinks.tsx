@@ -3,7 +3,52 @@ import { Link, useParams } from 'react-router-dom'
 import { backend } from '../backend'
 import { ITEM_ICONS } from '../lib/items'
 import { buildPptx, liveSlides, readDeckSlides, saveFile } from '../lib/pptx'
+import { coachLink } from '../lib/coach'
 import type { Placement, Presentation } from '../types'
+
+/** Lien à envoyer au coach qui présente : nouveau code et téléchargement avant chaque conférence */
+function CoachLink({ pres }: { pres: Presentation }) {
+  const [name, setName] = useState(pres.coach ?? '')
+  const [link, setLink] = useState(
+    pres.coachKey ? `${location.origin}/coach/${pres.id}?k=${pres.coachKey}` : '',
+  )
+  const [copied, setCopied] = useState(false)
+  const create = async () => {
+    const uid = await backend.getUid()
+    setLink(await coachLink(pres.id, uid, name))
+  }
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      prompt('Copiez ce lien :', link)
+    }
+  }
+  return (
+    <div className="card">
+      <h3>Lien pour le coach</h3>
+      <p className="muted">
+        Le coach y prend un nouveau code avant chaque conférence et télécharge sa présentation complète. Sans compte.
+      </p>
+      <div className="row" style={{ flexWrap: 'wrap' }}>
+        <input className="input" style={{ maxWidth: 220 }} placeholder="Prénom du coach" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="btn" onClick={create}>
+          {link ? 'Mettre à jour le prénom' : 'Créer le lien'}
+        </button>
+      </div>
+      {link && (
+        <div className="row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+          <code style={{ wordBreak: 'break-all', fontSize: '0.8rem' }}>{link}</code>
+          <button className={'btn' + (copied ? ' btn-primary' : '')} onClick={copy}>
+            {copied ? '✓ Copié' : 'Copier le lien'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 /**
  * Page « PowerPoint » d'une présentation :
@@ -238,6 +283,9 @@ export default function PptLinks() {
         </p>
         {error && <p className="error">⚠️ {error}</p>}
       </div>
+
+      {/* ---------- Lien coach ---------- */}
+      <CoachLink pres={pres} />
 
       {/* ---------- Module ---------- */}
       <div className="card">

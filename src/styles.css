@@ -1025,3 +1025,24 @@ details.card summary {
   max-width: 100%;
   white-space: normal;
 }
+
+/* Page coach */
+.coach .steps {
+  display: grid;
+  gap: 12px;
+  padding-left: 20px;
+  margin: 10px 0 14px;
+}
+.coach .steps li > div {
+  margin-bottom: 6px;
+}
+.coach-code {
+  font-size: 1.1rem;
+}
+.coach-code b {
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+}
+.coach .ok {
+  color: #34d399;
+}

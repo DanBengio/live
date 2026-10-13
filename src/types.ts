@@ -52,6 +52,12 @@ export interface Presentation {
    * null ou absent : pas dans le PowerPoint.
    */
   placements?: Record<string, Placement | null>
+  /** Lien coach (/coach/<id>?k=<coachKey>) et prénom du coach */
+  coachKey?: string
+  coach?: string
+  /** Date du code actuel, et codes des conférences précédentes */
+  codeAt?: number
+  history?: { code: string; from: number; to: number }[]
 }
 
 export interface Placement {
