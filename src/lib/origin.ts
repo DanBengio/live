@@ -20,3 +20,13 @@ export function joinUrl(code: string): string {
 export function joinHost(): string {
   return origin().replace(/^https?:\/\//, '')
 }
+
+/**
+ * Adresse à afficher à l'écran pour rejoindre, ou null pour la masquer.
+ * Masquée tant que le site tourne sur un domaine qui n'est pas celui de l'application
+ * (sondage.baratextile.com) : on affiche alors seulement le QR code et le code.
+ */
+export function visibleJoinHost(): string | null {
+  const h = joinHost()
+  return /baratextile/i.test(h) ? null : h
+}

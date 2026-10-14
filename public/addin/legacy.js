@@ -123,11 +123,16 @@
     return copy(s, { status: 'active', currentIndex: index, phase: 'question', timerEndsAt: null })
   }
 
+  // adresse du site masquée à l'écran tant que c'est sondage.baratextile.com (QR code et code seulement)
+  function shownHost() {
+    return /baratextile/i.test(host) ? null : host
+  }
+
   // ---------- affichage ----------
   function badge() {
     return (
       '<div class="badge"><img src="/api/qr.svg?code=' + target.code + '" alt="" />' +
-      esc(host) + '<br><b>' + target.code + '</b></div>'
+      (shownHost() ? esc(shownHost()) : 'Code') + '<br><b>' + target.code + '</b></div>'
     )
   }
   function bars(item, highlight) {
@@ -200,7 +205,9 @@
       var shown = participants.slice(-24)
       for (var i = 0; i < shown.length; i++) names += esc(shown[i].name) + (i < shown.length - 1 ? ' · ' : '')
       var how =
-        'Rendez-vous sur <b>' + esc(host) + '</b><br>et entrez le code' +
+        (shownHost()
+          ? 'Rendez-vous sur <b>' + esc(shownHost()) + '</b><br>et entrez le code'
+          : 'Scannez le QR code<br><span class="muted" style="font-size:22px">avec l’appareil photo du téléphone · code de la salle :</span>') +
         '<div class="code">' + target.code + '</div>' +
         '<div class="muted" style="font-size:22px">' + participants.length + ' participant' + (participants.length > 1 ? 's' : '') + ' dans la salle</div>' +
         '<div class="muted" style="font-size:16px;margin-top:10px">' + names + '</div>'

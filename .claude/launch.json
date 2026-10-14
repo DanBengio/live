@@ -4,14 +4,34 @@
     {
       "name": "live",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
     },
     {
       "name": "live-build",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["server/index.js", "--port", "3100"],
+      "runtimeArgs": [
+        "server/index.js",
+        "--port",
+        "3100"
+      ],
       "port": 3100
+    },
+    {
+      "name": "live-build-baratextile",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server/index.js",
+        "--port",
+        "3200"
+      ],
+      "port": 3200,
+      "env": {
+        "PUBLIC_URL": "https://sondage.baratextile.com"
+      }
     }
   ]
 }

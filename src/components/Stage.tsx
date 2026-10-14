@@ -4,7 +4,7 @@
  */
 import type { Answer, Item, Participant, Question, Session } from '../types'
 import { countWords } from '../lib/words'
-import { joinHost } from '../lib/session'
+import { visibleJoinHost } from '../lib/origin'
 import { Bars } from './Bars'
 import { WordCloud } from './WordCloud'
 import { Leaderboard } from './Leaderboard'
@@ -76,10 +76,19 @@ function Lobby({ session: s, participants }: { session: Session; participants: P
       </div>
       <div className="lobby">
         <div className="how">
-          <div>
-            Rendez-vous sur <b>{joinHost()}</b>
-          </div>
-          <div>et entrez le code</div>
+          {visibleJoinHost() ? (
+            <>
+              <div>
+                Rendez-vous sur <b>{visibleJoinHost()}</b>
+              </div>
+              <div>et entrez le code</div>
+            </>
+          ) : (
+            <>
+              <div>Scannez le QR code</div>
+              <div className="muted">avec l’appareil photo du téléphone · code de la salle :</div>
+            </>
+          )}
           <div className="code">{s.code}</div>
           <div className="muted">
             {participants.length} participant{participants.length > 1 ? 's' : ''} dans la salle

@@ -24,11 +24,15 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : module compatible anciens PowerPoint (moteur Internet Explorer 11 / Edge ancien). `index.html` détecte le vieux moteur sur `/addin` et bascule vers `public/addin/legacy.html` (ES5 écrit à la main : accueil + QR code servi par le serveur `/api/qr.svg`, barres, nuage de mots en liste, questions du public, la salle suit les diapos). Testé dans le vrai moteur IE11 de Windows avec `scripts/test-moteur-ie.ps1` (mode document 11) : rendu correct. **Mis en ligne et confirmé par Dan le 14/10 : fonctionne chez Bahaâ.** Le quiz s'y affiche mais son chrono ne se pilote pas depuis la diapo.
 - [x] 14/10 : la présentation de Bahaâ gelait parfois. Cause probable : ses ~18 modules tournent en même temps dans le vieux moteur, chacun interrogeant le site et PowerPoint chaque seconde et redessinant tout (QR code compris). Correctif dans `legacy.js` : seule la diapo à l'écran travaille (les autres en veille, 6 s), redessin seulement si le contenu change, QR code jamais redessiné, appels à PowerPoint espacés (1 s). Vérifié dans le moteur IE11 : 0 redessin en 8 s sans changement, nouveaux participants bien affichés. Fichier contrôlé en ES5 strict (acorn).
 - [x] 14/10 : une seconde de décalage au changement de diapo (l'activité précédente restait visible), chez Mona comme chez Bahaâ. Cause : chaque diapo affichait l'activité en cours de la salle, pas la sienne, en attendant que la salle suive. Correctif dans les deux versions du module (`showSlide` dans `Host.tsx`, `slideView` dans `legacy.js`) : la diapo affiche tout de suite sa propre activité et ses réponses ; le bouton de secours « Afficher cette activité » n'apparaît dans PowerPoint qu'après 5 s sans synchronisation. Vérifié : la page affiche la bonne activité dès la première image ; version ancienne revérifiée dans le moteur IE11.
+- [x] 14/10 : l'adresse du site n'apparaît plus à l'écran tant qu'elle contient « baratextile » (`visibleJoinHost` dans `src/lib/origin.ts`, `shownHost` dans `legacy.js`) : accueil « Scannez le QR code » + code, badge « Code ». Elle réapparaîtra seule avec un domaine propre (régler alors PUBLIC_URL sur le serveur). Reste visible en petit dans la barre d'adresse des téléphones.
+- [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**À mettre en ligne (hors conférence)** : correctifs du 14/10 (blocages chez Bahaâ, et seconde de décalage au changement de diapo pour tous). git pull + Build + Run, puis chaque coach ferme et rouvre PowerPoint.
+**À mettre en ligne (hors conférence)** : correctifs du 14/10 (blocages chez Bahaâ, décalage au changement de diapo, adresse « baratextile » retirée de l'écran). git pull + Build + Run, puis chaque coach ferme et rouvre PowerPoint.
+
+**Dan** : choisir un nom pour l'application (propositions du 14/10 dans la conversation : Salle Vive, Écho Salle, Lève la main…), puis acheter le domaine chez Infomaniak.
 
 
 **Dan** : envoyer à Mona, Sakina et Bahaâ leur lien coach (donnés dans la conversation du 13/10, jamais dans ce fichier public). Chacune : installer le module une fois, puis avant chaque conférence « Nouvelle conférence » → « Télécharger ma présentation ».
@@ -104,3 +108,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026** : version anciens PowerPoint en ligne, fonctionne chez Bahaâ (QR code compris). Mona et Sakina inchangées.
 - **14 octobre 2026** : blocages chez Bahaâ, correctif d'allègement de la version anciens PowerPoint, poussé, à déployer.
 - **14 octobre 2026** : correctif du décalage au changement de diapo, poussé avec le correctif des blocages, à déployer.
+- **14 octobre 2026** : adresse retirée de l'écran projeté, propositions de noms d'application.
