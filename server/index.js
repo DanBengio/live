@@ -333,6 +333,8 @@ app.post('/api/live/:code', (req, res) => {
       if (db[t][code]) db[t][old] = db[t][code]
       delete db[t][code]
     }
+    // la fiche archivée porte son nom d'archive, pour retrouver ses participants et réponses
+    if (db.sessions[old]) db.sessions[old] = { ...db.sessions[old], code: old }
     s = null
   }
   if (!s) {
@@ -420,12 +422,12 @@ app.post('/api/sessions/:code/join', (req, res) => {
 })
 app.get('/api/sessions/:code/participants', (req, res) => {
   const s = findSession(req, res)
-  if (s) res.json(Object.values(db.participants[s.code] ?? {}).sort((a, b) => a.joinedAt - b.joinedAt))
+  if (s) res.json(Object.values(db.participants[req.params.code] ?? {}).sort((a, b) => a.joinedAt - b.joinedAt))
 })
 app.get('/api/sessions/:code/participants/:pid', (req, res) => {
   const s = findSession(req, res)
   if (!s) return
-  const p = db.participants[s.code]?.[req.params.pid]
+  const p = db.participants[req.params.code]?.[req.params.pid]
   if (!p) return res.status(404).json({ error: 'Participant introuvable' })
   res.json(p)
 })
@@ -472,7 +474,7 @@ app.get('/api/sessions/:code/answers', (req, res) => {
   if (!s) return
   const item = String(req.query.item || '')
   res.json(
-    Object.values(db.answers[s.code] ?? {})
+    Object.values(db.answers[req.params.code] ?? {})
       .filter((a) => a.itemId === item)
       .sort((a, b) => a.at - b.at),
   )
@@ -515,7 +517,7 @@ app.patch('/api/sessions/:code/questions/:qid', (req, res) => {
 })
 app.get('/api/sessions/:code/questions', (req, res) => {
   const s = findSession(req, res)
-  if (s) res.json(sortQuestions(Object.values(db.questions[s.code] ?? {})))
+  if (s) res.json(sortQuestions(Object.values(db.questions[req.params.code] ?? {})))
 })
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Route inconnue' }))

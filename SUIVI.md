@@ -32,6 +32,8 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Prochaine action
 
+**À mettre en ligne (hors conférence)** : lecture des salles archivées (participants et réponses d'une salle repartie à zéro). git pull + Build + Run. Ensuite Claude exporte les résultats de la conférence de Dan du 13/10 (archive `434294~1791885133900`) en Excel.
+
 **Bahaâ** : fermer et rouvrir PowerPoint, puis diaporama complet en passant les diapos Live au clavier et à la souris ; rapporter à Dan.
 
 
@@ -116,3 +118,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026** : correctif du chargement du module sur Mac (mémoire de l'ancienne page), poussé, à déployer.
 - **14 octobre 2026** : Mona (Mac) débloquée en direct en vidant le cache de PowerPoint Mac (`~/Library/Containers/com.microsoft.Powerpoint/Data/Library/Caches` et `.../Application Support/Microsoft/Office/16.0/Wef`) : confirme la cause (page du module périmée). Mise en ligne des correctifs reportée après les conférences en cours (Bahaâ animait).
 - **14 octobre 2026, soir** : correctifs navigation + cache en ligne. Navigation testée sur le PowerPoint de Dan (OK). Note : rouvrir le deck de la salle 1 a archivé la session du 13/10 (règle des 12 h) ; ses résultats restent conservés sous l'ancien code archivé.
+- **14 octobre 2026, soir** : les archives de salle s'affichaient vides (la fiche archivée gardait l'ancien code, les lectures partaient vers la nouvelle salle). Données intactes. Correctif : lectures par le code demandé + la fiche archivée prend son nom d'archive. Testé en local, poussé, à déployer.
