@@ -28,10 +28,21 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : chez Bahaâ, impossible de passer à la diapo suivante après une diapo Live (le module garde clavier et souris en diaporama). Correctif dans les deux versions : le module renvoie à PowerPoint → ↓ Page suiv. espace Entrée N (suivante), ← ↑ Page préc. retour arrière P (précédente) et le clic (suivante) via `goToByIdAsync(Office.Index.Next/Previous)`. **En ligne le 14/10 au soir.** Testé par Claude sur PowerPoint récent (PC de Dan) : clic et flèches font avancer et reculer, y compris d'une diapo Live à une autre. Reste à confirmer chez Bahaâ (ancien PowerPoint).
 - [x] 14/10 : chez Mona (Mac), le module affichait « version de PowerPoint trop ancienne ». Cause probable : PowerPoint Mac a rouvert l'ancienne page du module gardée en mémoire, qui cherchait des fichiers supprimés par la mise en ligne (et le serveur renvoyait la page d'accueil à la place). Correctifs : `emptyOutDir: false` (les anciens fichiers restent), pages HTML en `no-store`, fichier manquant = 404, et dans `index.html` un filet de sécurité qui recharge une fois au bout de 12 s puis affiche un message juste (plus « version trop ancienne »). Testé en local : démarrage normal sans rechargement, échec simulé → rechargement puis message. **En ligne le 14/10 au soir** (vérifié : no-store, 404 sur fichier manquant).
 - [x] 14/10 : synthèse Excel des 3 premières conférences ICF (Dan 13/10, Bahaâ et Mona 14/10) : « Live - synthèse conférences ICF.xlsx » rangé dans Google Drive : Mon Drive → ICF → EDVANTIS (attention : le nom local du dossier « Mon Drive » contient une espace insécable). Onglets Synthèse, Résultats (par question et par conférence), Mots, Participants. 368 formules, 0 erreur (recalcul Excel via COM). Pour la mettre à jour : `node scripts/conferences-data.cjs data.json "Nom=code" …` puis `py -3.14 scripts/synthese-excel.py data.json sortie.xlsx`. Archive de la conférence de Dan : `434294~1791885133900`.
+- [x] 14/10 : sauvegarde avant séparation : tag et branche GitHub `sauvegarde-2026-10-14` / `sauvegarde-avant-icf`, copie locale dans `sauvegardes/2026-10-14` (code, PowerPoint, clés privées ; dossier hors dépôt).
+- [x] 14/10 : un code, plusieurs sites. `<données>/instance.json` (publicUrl, addinId, addinName, adminKey), `--data`, manifeste et installateurs générés par le serveur, PowerPoint téléchargé avec le module du site, export/import de présentations. Testé en local avec deux sites. Sur le site de Dan, sans instance.json, tout reste identique (même module).
 - [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
+
+**Site ICF (décidé le 14/10 : un seul code, deux sites, les deux sur l'Infomaniak de Dan)** — dans l'ordre :
+1. La personne d'ICF crée le sous-domaine : CNAME vers `sondage.baratextile.com` (ou A 185.125.27.89 + AAAA 2001:1600:4:11::576).
+2. Dan crée dans Infomaniak un 2e site Node.js sur ce sous-domaine (mêmes réglages que le 1er : Node 24, `npm install --include=dev && npm run build`, exécution `npm start`, port 3000), puis active le certificat.
+3. Console SSH du nouveau site : `git clone https://github.com/DanBengio/live.git .` puis créer `server/data/instance.json` (réglages préparés par Claude dans `sauvegardes/2026-10-14/prive/instance-icf.json`, + `publicUrl` = adresse ICF), Build, Run.
+4. Claude déménage les 3 présentations coachs (Mona, Sakina, Bahaâ) avec `scripts/demenager-presentation.cjs ... --supprimer`, hors conférence, et donne les nouveaux liens coach.
+5. Chaque coach : installer le module « Live ICF » depuis sa nouvelle page coach, puis télécharger sa présentation.
+
+**Dan (sauvegarde)** : console SSH du site actuel : `cd ~/sites/sondage.baratextile.com && tar czf ~/sauvegarde-live-2026-10-14.tar.gz server/data`.
 
 **Bahaâ** : fermer et rouvrir PowerPoint, puis diaporama complet en passant les diapos Live au clavier et à la souris ; rapporter à Dan.
 
@@ -119,3 +130,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026, soir** : correctifs navigation + cache en ligne. Navigation testée sur le PowerPoint de Dan (OK). Note : rouvrir le deck de la salle 1 a archivé la session du 13/10 (règle des 12 h) ; ses résultats restent conservés sous l'ancien code archivé.
 - **14 octobre 2026, soir** : les archives de salle s'affichaient vides (la fiche archivée gardait l'ancien code, les lectures partaient vers la nouvelle salle). Données intactes. Correctif : lectures par le code demandé + la fiche archivée prend son nom d'archive. Testé en local, poussé, à déployer.
 - **14 octobre 2026, soir** : lecture des archives en ligne (vérifié : 44 participants retrouvés). Synthèse Excel des 3 conférences livrée.
+- **14 octobre 2026, nuit** : décision de faire un site ICF séparé (même code). Sauvegarde complète, puis réglages par site et déménagement codés et testés en local. Le sous-domaine ICF arrive le 15/10.
