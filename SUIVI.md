@@ -31,17 +31,18 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : sauvegarde avant séparation : tag et branche GitHub `sauvegarde-2026-10-14` / `sauvegarde-avant-icf`, copie locale dans `sauvegardes/2026-10-14` (code, PowerPoint, clés privées ; dossier hors dépôt).
 - [x] 14/10 : un code, plusieurs sites. `<données>/instance.json` (publicUrl, addinId, addinName, adminKey), `--data`, manifeste et installateurs générés par le serveur, PowerPoint téléchargé avec le module du site, export/import de présentations. Testé en local avec deux sites. Sur le site de Dan, sans instance.json, tout reste identique (même module).
 - [x] 14/10 : option A, un seul module PowerPoint pour tous les sites : le module lit l'adresse de la diapo et parle au site correspondant (`setApiBase` dans `src/backend/http.ts`, `BASE` dans `legacy.js`), le serveur accepte ces appels entre sites (CORS sur /api, sans cookies). Testé en local, deux sites : page du module servie par le site de Dan, diapo et salle du site ICF, dans Chrome et dans le moteur IE11 (affichage, QR code, et la salle suit la diapo).
+- [x] 14/10 : espaces sur un seul serveur (`createSpace` dans `server/index.js`) : l'adresse appelée choisit l'espace, chacun avec ses données (`<données>/espaces/<nom>/`). Testé en local : données séparées, déménagement des 3 coachs vers l'espace ICF, diapo ICF affichée par le module servi depuis l'adresse principale, page coach sur l'adresse ICF, espace principal inchangé.
 - [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**Site ICF (décidé le 14/10 : un seul code, deux sites, les deux sur l'Infomaniak de Dan)** — dans l'ordre :
-1. La personne d'ICF crée le sous-domaine : CNAME vers `sondage.baratextile.com` (ou A 185.125.27.89 + AAAA 2001:1600:4:11::576).
-2. Dan crée dans Infomaniak un 2e site Node.js sur ce sous-domaine (mêmes réglages que le 1er : Node 24, `npm install --include=dev && npm run build`, exécution `npm start`, port 3000), puis active le certificat.
-3. Console SSH du nouveau site : `git clone https://github.com/DanBengio/live.git .` puis créer `server/data/instance.json` (réglages préparés par Claude dans `sauvegardes/2026-10-14/prive/instance-icf.json` : `adminKey`, + `publicUrl` = adresse ICF ; pas d'`addinId` : même module que le site de Dan), Build, Run.
-4. Claude déménage les 3 présentations coachs (Mona, Sakina, Bahaâ) avec `scripts/demenager-presentation.cjs ... --supprimer`, hors conférence, et donne les nouveaux liens coach.
-5. Chaque coach : rien à installer (option A du 14/10 : on garde le module « Live » existant), juste télécharger sa présentation depuis sa nouvelle page coach.
+**Espace ICF (décidé le 14/10 : un seul site Node.js chez Infomaniak — l'offre n'en permet qu'un —, deux espaces aux données séparées)** — dans l'ordre :
+1. Le webmaster d'ICF crée le sous-domaine : CNAME vers `sondage.baratextile.com` (ou A 185.125.27.89 + AAAA 2001:1600:4:11::576). Consignes envoyées par Dan.
+2. Dan ajoute ce sous-domaine au site actuel (encadré « 2 domaines » → +), puis active le certificat.
+3. Dan met à jour le site (git pull, Build, Run), puis colle dans la console SSH la commande de Claude qui crée `server/data/espaces/icf/instance.json` (hosts = sous-domaine, publicUrl = https://sous-domaine, adminKey préparée dans `sauvegardes/2026-10-14/prive/instance-icf.json`), puis Run.
+4. Claude déménage les 3 présentations coachs (Mona, Sakina, Bahaâ) vers l'espace ICF avec `scripts/demenager-presentation.cjs <site> https://<sous-domaine> <adminKey> liste.json --supprimer`, hors conférence, et donne les nouveaux liens coach.
+5. Chaque coach : rien à installer (même module Live), juste télécharger sa présentation depuis sa nouvelle page coach.
 
 **Dan (sauvegarde)** : console SSH du site actuel : `cd ~/sites/sondage.baratextile.com && tar czf ~/sauvegarde-live-2026-10-14.tar.gz server/data`.
 
@@ -133,3 +134,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026, soir** : lecture des archives en ligne (vérifié : 44 participants retrouvés). Synthèse Excel des 3 conférences livrée.
 - **14 octobre 2026, nuit** : décision de faire un site ICF séparé (même code). Sauvegarde complète, puis réglages par site et déménagement codés et testés en local. Le sous-domaine ICF arrive le 15/10.
 - **14 octobre 2026, nuit** : option A retenue (les coachs gardent le module Live). Module multi-sites codé et testé en local.
+- **14 octobre 2026, nuit** : l'offre Infomaniak ne permet qu'un site Node.js : option B, un seul site avec deux espaces aux données séparées. Codé et testé en local.
