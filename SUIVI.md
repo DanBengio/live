@@ -113,3 +113,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026** : adresse retirée de l'écran projeté, propositions de noms d'application.
 - **14 octobre 2026** : correctif de navigation dans le diaporama (diapo suivante depuis une diapo Live), poussé, à déployer puis tester.
 - **14 octobre 2026** : correctif du chargement du module sur Mac (mémoire de l'ancienne page), poussé, à déployer.
+- **14 octobre 2026** : Mona (Mac) débloquée en direct en vidant le cache de PowerPoint Mac (`~/Library/Containers/com.microsoft.Powerpoint/Data/Library/Caches` et `.../Application Support/Microsoft/Office/16.0/Wef`) : confirme la cause (page du module périmée). Mise en ligne des correctifs reportée après les conférences en cours (Bahaâ animait).
