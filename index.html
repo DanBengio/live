@@ -24,24 +24,41 @@
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Navigateurs trop anciens (module PowerPoint dans PowerPoint 2016 / 2019, qui utilise le moteur
-      // d'Internet Explorer) : l'application ne démarre pas. Au lieu d'un écran vide, on explique quoi faire.
+      // Filet de sécurité si l'application ne démarre pas (connexion lente, ancienne page gardée en
+      // mémoire par PowerPoint…) : on recharge une fois tout seul, puis on explique quoi faire.
       // JavaScript volontairement ancien (ES5) pour tourner partout.
-      setTimeout(function () {
-        var root = document.getElementById('root')
-        if (!root || root.children.length) return
-        var addin = location.pathname.indexOf('/addin') === 0
-        root.innerHTML =
-          '<div style="font-family:Segoe UI,Arial,sans-serif;color:#fff;padding:6%;font-size:22px;line-height:1.4">' +
-          '<div style="font-size:30px;font-weight:bold;margin-bottom:16px">Live</div>' +
-          (addin
-            ? 'Cette version de PowerPoint est trop ancienne pour afficher Live dans la diapo.<br><br>' +
-              'Solution : sur votre page coach, téléchargez la <b>présentation sans module</b>, ' +
-              'puis utilisez <b>« Présenter depuis le navigateur »</b> au moment des questions (Alt + Tab).<br><br>' +
-              '<span style="color:#9ca3af">Ou mettez à jour Office vers Microsoft 365.</span>'
-            : 'Ce navigateur est trop ancien pour Live. Ouvrez cette page dans Chrome, Edge, Firefox ou Safari.') +
-          '</div>'
-      }, 5000)
+      ;(function () {
+        var key = 'live-retry:' + location.pathname
+        setTimeout(function () {
+          var store = null
+          try {
+            store = window.sessionStorage
+          } catch (e) {}
+          if (window.__liveStarted) {
+            if (store) store.removeItem(key)
+            return
+          }
+          if (store && !store.getItem(key)) {
+            store.setItem(key, '1')
+            var sep = location.search ? '&' : '?'
+            location.replace(location.pathname + location.search + sep + 'r=' + new Date().getTime())
+            return
+          }
+          if (store) store.removeItem(key)
+          var root = document.getElementById('root')
+          if (!root) return
+          var addin = location.pathname.indexOf('/addin') === 0
+          root.innerHTML =
+            '<div style="font-family:Segoe UI,Arial,sans-serif;color:#fff;padding:6%;font-size:22px;line-height:1.4">' +
+            '<div style="font-size:30px;font-weight:bold;margin-bottom:16px">Live</div>' +
+            (addin
+              ? 'Live n’a pas pu se charger (connexion lente ?).<br><br>' +
+                'Fermez complètement PowerPoint, puis rouvrez la présentation.<br><br>' +
+                '<span style="color:#9ca3af">Si ça continue : « Présenter depuis le navigateur » sur votre page coach.</span>'
+              : 'Live n’a pas pu se charger. Rechargez la page, ou ouvrez-la dans Chrome, Edge, Firefox ou Safari.') +
+            '</div>'
+        }, 12000)
+      })()
     </script>
   </body>
 </html>

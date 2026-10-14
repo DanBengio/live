@@ -523,8 +523,22 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Route inconnue' })
 // ---------- Site (après `npm run build`) ----------
 
 if (fs.existsSync(DIST)) {
-  app.use(express.static(DIST, { index: 'index.html' }))
-  app.get('*', (_req, res) => res.sendFile(path.join(DIST, 'index.html')))
+  const noStore = (res) => res.set('Cache-Control', 'no-store')
+  app.use(
+    express.static(DIST, {
+      index: 'index.html',
+      setHeaders: (res, file) => {
+        // la page (et celles du module) toujours fraîche ; les fichiers à empreinte, gardés un an
+        if (/\.html$/.test(file)) noStore(res)
+        else if (/[\\/]assets[\\/]/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable')
+      },
+    }),
+  )
+  app.get('/assets/*', (_req, res) => res.status(404).end())
+  app.get('*', (_req, res) => {
+    noStore(res)
+    res.sendFile(path.join(DIST, 'index.html'))
+  })
 } else {
   app.get('/', (_req, res) =>
     res.type('text').send('API Live en marche. Le site n’est pas construit : lancez `npm run build`, ou utilisez `npm run dev`.'),

@@ -3,6 +3,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // On garde les fichiers des versions précédentes : un PowerPoint qui a gardé l'ancienne
+    // page du module en mémoire doit encore trouver ses fichiers après une mise en ligne.
+    emptyOutDir: false,
+  },
   server: {
     port: 5173,
     host: true,
