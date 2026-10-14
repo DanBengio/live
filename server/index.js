@@ -12,6 +12,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { QRCodeSVG } from 'qrcode.react'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const arg = (name, fallback) => {
@@ -119,6 +122,13 @@ app.use('/api', (_req, res, next) => {
 })
 
 app.set('trust proxy', true)
+// QR code en image (pour le module des anciens PowerPoint, qui ne savent pas le dessiner)
+app.get('/api/qr.svg', (req, res) => {
+  const code = String(req.query.code || '')
+  if (!/^\d{6}$/.test(code)) return res.status(400).end()
+  const svg = renderToStaticMarkup(createElement(QRCodeSVG, { value: `${publicUrlFor(req)}/join/${code}`, size: 600, level: 'M', bgColor: '#ffffff', fgColor: '#0b1020' }))
+  res.set('Cache-Control', 'public, max-age=86400').type('image/svg+xml').send(svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))
+})
 app.get('/api/info', (req, res) => res.json({ name: 'node', publicUrl: publicUrlFor(req), pollMs: 1000 }))
 
 // Présentations (privées à leur auteur)

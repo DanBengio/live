@@ -21,11 +21,12 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] Liens coach (13/10) : `/coach/<id>?k=<clé coach>`, sans compte. Le coach clique « Nouvelle conférence » (nouveau code, nouvelle clé de diapos, salle vide ; l'ancien code est archivé avec ses résultats et ne pilote plus rien), puis « Télécharger ma présentation » (fichier complet). Créé depuis la page PowerPoint de l'animateur (« Lien pour le coach »). Le lien « adopter » accepte aussi la clé coach. Testé en local.
 - [x] 13/10 : présentations coachs ICF créées en ligne (Mona, Sakina, Bahaâ), chacune avec le PowerPoint ICF et ses 18 emplacements ; page coach de Mona testée en ligne (téléchargement OK). Liens « adopter » donnés à Dan pour les voir dans « Mes présentations ».
 - [x] 14/10 : chez Bahaâ, le module est installé mais les diapos Live restent vides (ancienne version de PowerPoint, moteur Internet Explorer : l'application ne démarre pas). Ajouts : page coach → « Présentation sans module » (fichier d'origine) + « Présenter depuis le navigateur » (`/coach/<id>/presenter?k=`, pilotage au clavier avec la clé coach) ; dans le module, message d'explication au lieu d'un écran vide (script ES5 dans `index.html`). Version exacte d'Office de Bahaâ pas encore connue (Fichier → Compte).
+- [x] 14/10 : module compatible anciens PowerPoint (moteur Internet Explorer 11 / Edge ancien). `index.html` détecte le vieux moteur sur `/addin` et bascule vers `public/addin/legacy.html` (ES5 écrit à la main : accueil + QR code servi par le serveur `/api/qr.svg`, barres, nuage de mots en liste, questions du public, la salle suit les diapos). Testé dans le vrai moteur IE11 de Windows avec `scripts/test-moteur-ie.ps1` (mode document 11) : rendu correct. Non testé dans le PowerPoint de Bahaâ lui-même. Le quiz s'y affiche mais son chrono ne se pilote pas depuis la diapo.
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**À mettre en ligne tout de suite (hors conférence)** : mode « Présenter depuis le navigateur » et « Présentation sans module » sur les pages coach, pour Bahaâ (PowerPoint ancien : les diapos Live restent vides). git pull + Build + Run.
+**À mettre en ligne (hors conférence)** : module compatible anciens PowerPoint + mode navigateur + présentation sans module. git pull + Build + Run. Puis Bahaâ ferme et rouvre son fichier PowerPoint (pas besoin de réinstaller ni de retélécharger).
 
 **Dan** : envoyer à Mona, Sakina et Bahaâ leur lien coach (donnés dans la conversation du 13/10, jamais dans ce fichier public). Chacune : installer le module une fois, puis avant chaque conférence « Nouvelle conférence » → « Télécharger ma présentation ».
 
@@ -96,3 +97,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **13 octobre 2026, soir** : conférence ICF avec 3 coachs (Mona, Sakina, Bahaâ), 3 conférences chacune. Ajout des liens coach avec nouveau code par conférence. Poussé, à déployer.
 - **13 octobre 2026, soir** : liens coach en ligne, 3 présentations coachs créées et vérifiées.
 - **14 octobre 2026** : PowerPoint trop ancien chez Bahaâ. Mode navigateur ajouté aux pages coach, testé en local, poussé, à déployer.
+- **14 octobre 2026** : option A choisie pour Bahaâ : version du module pour anciens PowerPoint, testée dans le moteur IE11, poussée, à déployer.

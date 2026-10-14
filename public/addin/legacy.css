@@ -1,0 +1,231 @@
+/* Module Live pour anciens PowerPoint : CSS simple (pas de variables, de grid, de clamp) */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b1020;
+  color: #f1f5f9;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+#fit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  background: #0b1020;
+  -ms-transform-origin: 0 0;
+  transform-origin: 0 0;
+}
+#stage {
+  position: absolute;
+  left: 40px;
+  top: 28px;
+  right: 40px;
+  bottom: 24px;
+}
+.head {
+  position: relative;
+  min-height: 80px;
+  padding-right: 280px;
+}
+.head h1 {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+.badge {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #1a2242;
+  border: 1px solid #2e3a66;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 15px;
+  color: #94a3b8;
+}
+.badge img {
+  width: 64px;
+  height: 64px;
+  vertical-align: middle;
+  margin-right: 10px;
+  background: #fff;
+}
+.badge b {
+  color: #f1f5f9;
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+.body {
+  position: relative;
+  margin-top: 22px;
+}
+.foot {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  color: #94a3b8;
+  font-size: 18px;
+}
+/* Barres */
+.row {
+  margin-bottom: 14px;
+}
+.row .lab {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  position: relative;
+  padding-right: 110px;
+}
+.row .lab .sw {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  margin-right: 10px;
+  vertical-align: -2px;
+}
+.row .lab .pct {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #94a3b8;
+  font-weight: 400;
+}
+.row .track {
+  height: 26px;
+  background: #182040;
+  border-radius: 13px;
+  overflow: hidden;
+}
+.row .fill {
+  height: 26px;
+  border-radius: 13px;
+}
+.compact .row {
+  margin-bottom: 6px;
+  position: relative;
+  height: 30px;
+}
+.compact .row .lab {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40%;
+  font-size: 20px;
+  padding-right: 80px;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.compact .row .track {
+  margin-left: 42%;
+  height: 22px;
+  margin-top: 3px;
+}
+.compact .row .fill {
+  height: 22px;
+}
+/* Nuage de mots (liste pondérée) */
+.cloud {
+  text-align: center;
+  line-height: 1.25;
+  padding-top: 20px;
+}
+.cloud span {
+  display: inline-block;
+  margin: 6px 16px;
+  font-weight: 700;
+}
+/* Questions du public */
+.qa div {
+  background: #1a2242;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 22px;
+}
+.qa b {
+  color: #a78bfa;
+  margin-right: 12px;
+}
+/* Accueil */
+.lobby .how {
+  position: absolute;
+  left: 0;
+  top: 170px;
+  width: 640px;
+  font-size: 28px;
+}
+.lobby .code {
+  font-size: 140px;
+  font-weight: 800;
+  letter-spacing: 10px;
+  color: #a5b4fc;
+  margin: 10px 0;
+}
+.lobby .qr {
+  position: absolute;
+  right: 20px;
+  top: 150px;
+  width: 400px;
+  height: 400px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+}
+.lobby .qr img {
+  width: 400px;
+  height: 400px;
+}
+.muted {
+  color: #94a3b8;
+}
+.center {
+  text-align: center;
+  padding-top: 200px;
+  font-size: 40px;
+}
+/* Barre d'édition (mode normal de PowerPoint) */
+#bar {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+#bar span {
+  background: #111827;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+#bar a {
+  color: #a5b4fc;
+  margin-left: 8px;
+}
+.setup {
+  padding: 30px;
+  font-size: 16px;
+}
+.setup input {
+  width: 90%;
+  font-size: 15px;
+  padding: 8px;
+  margin: 10px 0;
+}
+.setup button {
+  font-size: 16px;
+  padding: 8px 16px;
+}
+.err {
+  color: #f87171;
+}

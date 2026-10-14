@@ -8,6 +8,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Module PowerPoint dans un moteur trop ancien (PowerPoint 2016 / 2019) : version compatible.
+      // On teste une syntaxe récente ; si le moteur ne la comprend pas, l'application moderne ne
+      // démarrerait pas. ES5 volontairement.
+      if (location.pathname.indexOf('/addin') === 0) {
+        var modern = true
+        try {
+          new Function('const a = { b: 1 }; return a?.b ?? 0')
+        } catch (e) {
+          modern = false
+        }
+        if (!modern) location.replace('/addin/legacy.html' + location.search)
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Navigateurs trop anciens (module PowerPoint dans PowerPoint 2016 / 2019, qui utilise le moteur

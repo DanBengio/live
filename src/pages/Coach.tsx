@@ -139,9 +139,9 @@ export default function Coach() {
       </div>
 
       <div className="card">
-        <h3>Les diapos Live restent vides ?</h3>
+        <h3>Plan B : les diapos Live ne s’affichent pas ?</h3>
         <p className="muted">
-          C’est le cas avec les anciennes versions de PowerPoint (2016, 2019). Dans ce cas :
+          Les anciennes versions de PowerPoint (2016, 2019) sont prises en charge. Si malgré tout une diapo Live reste vide :
         </p>
         <ol className="steps">
           <li>
