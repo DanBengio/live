@@ -136,9 +136,16 @@ app.disable('x-powered-by')
 // corps JSON limités à 300 ko, sauf l'import d'une présentation complète (fichier PowerPoint compris)
 const smallJson = express.json({ limit: '300kb' })
 app.use((req, res, next) => (req.path === '/api/import' ? next() : smallJson(req, res, next)))
-app.use('/api', (_req, res, next) => {
+app.use('/api', (req, res, next) => {
   // no-cache = le navigateur revalide à chaque fois (ETag → 304 si rien n'a changé)
   res.set('Cache-Control', 'no-cache')
+  // Le module PowerPoint peut être ouvert depuis un autre site Live (ex. celui de Dan pour une diapo
+  // ICF) : on accepte ses appels. Pas de cookies ici, les droits passent par les clés en en-tête.
+  res.set('Access-Control-Allow-Origin', '*')
+  res.set('Access-Control-Allow-Headers', 'content-type, x-uid, x-key')
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+  res.set('Access-Control-Max-Age', '86400')
+  if (req.method === 'OPTIONS') return res.status(204).end()
   next()
 })
 

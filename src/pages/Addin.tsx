@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from 'react'
 import { PptView, parseSlideUrl } from './Ppt'
+import { setApiBase } from '../backend/http'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
@@ -144,6 +145,15 @@ export default function Addin() {
   if (!office) return <div className="page"><span className="spinner" /></div>
 
   const parsed = saved ? parseSlideUrl(saved.url) : null
+  // la diapo peut venir d'un autre site Live (ex. ICF) que celui qui sert ce module : on parle à
+  // ce site-là. Fait pendant le rendu, avant que la diapo n'interroge le serveur (sans effet si inchangé).
+  if (parsed && saved) {
+    try {
+      setApiBase(new URL(saved.url).origin)
+    } catch {
+      /* adresse illisible : on reste sur ce site */
+    }
+  }
   if (!parsed || editing)
     return (
       <div className="page addin-setup">

@@ -40,14 +40,30 @@ function setSlideKey(key: string) {
   HEADERS['x-key'] = key
 }
 
+/**
+ * Site Live à qui parler. Vide = le site de la page. Le module PowerPoint peut être ouvert depuis
+ * un site (ex. celui de Dan) pour une diapo d'un autre site (ex. ICF) : il parle alors à ce dernier.
+ */
+let API = ''
 let info: Info = {}
-const ready: Promise<void> = fetch('/api/info', { headers: HEADERS })
-  .then((r) => (r.ok ? r.json() : null))
-  .then((i: Info | null) => {
-    info = i ?? {}
-    if (info.publicUrl) setPublicOrigin(info.publicUrl)
-  })
-  .catch(() => {})
+const loadInfo = () =>
+  fetch(API + '/api/info', { headers: HEADERS })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((i: Info | null) => {
+      info = i ?? {}
+      if (info.publicUrl) setPublicOrigin(info.publicUrl)
+    })
+    .catch(() => {})
+let ready: Promise<void> = loadInfo()
+
+/** Module PowerPoint : parler au site de la diapo (son adresse enregistrée), s'il n'est pas celui de la page */
+export function setApiBase(origin: string) {
+  const o = origin.replace(/\/$/, '')
+  const next = o === location.origin ? '' : o
+  if (next === API) return
+  API = next
+  ready = loadInfo()
+}
 
 const base = () => info.pollMs ?? 1000
 const S = (code: string) => `/api/sessions/${encodeURIComponent(code)}`
@@ -56,7 +72,7 @@ const fill = (template: string, vars: Record<string, string>) =>
 
 async function call<T = void>(method: string, url: string, body?: unknown): Promise<T> {
   await ready
-  const r = await fetch(url, { method, headers: HEADERS, body: body === undefined ? undefined : JSON.stringify(body) })
+  const r = await fetch(API + url, { method, headers: HEADERS, body: body === undefined ? undefined : JSON.stringify(body) })
   if (!r.ok) {
     let msg = `${r.status}`
     try {
@@ -71,7 +87,7 @@ async function call<T = void>(method: string, url: string, body?: unknown): Prom
 
 async function get<T>(url: string): Promise<T | null> {
   await ready
-  const r = await fetch(url, { headers: HEADERS, cache: 'no-cache' })
+  const r = await fetch(API + url, { headers: HEADERS, cache: 'no-cache' })
   if (r.status === 404) return null
   if (!r.ok) throw new Error(`${r.status}`)
   return r.json()
@@ -91,7 +107,7 @@ function poll<T>(url: () => string, ms: () => number, cb: (v: T) => void, missin
     if (stopped) return
     try {
       await ready
-      const r = await fetch(url(), { headers: HEADERS, cache: 'no-cache' })
+      const r = await fetch(API + url(), { headers: HEADERS, cache: 'no-cache' })
       if (stopped) return
       if (r.status === 404) emit('\u0000missing', missing)
       else if (r.ok) {
@@ -165,7 +181,7 @@ export const httpBackend: Backend = {
   resetPresentation: (id) => call('POST', `/api/presentations/${encodeURIComponent(id)}/reset`),
   uploadDeck: async (id, file) => {
     await ready
-    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/deck`, {
+    const r = await fetch(`${API}/api/presentations/${encodeURIComponent(id)}/deck`, {
       method: 'PUT',
       headers: { 'x-uid': UID, 'content-type': 'application/octet-stream', 'x-file-name': encodeURIComponent(file.name) },
       body: file,
@@ -176,7 +192,7 @@ export const httpBackend: Backend = {
   },
   downloadDeck: async (id) => {
     await ready
-    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/deck`, { headers: { 'x-uid': UID }, cache: 'no-store' })
+    const r = await fetch(`${API}/api/presentations/${encodeURIComponent(id)}/deck`, { headers: { 'x-uid': UID }, cache: 'no-store' })
     if (!r.ok) throw new Error(`${r.status}`)
     return r.arrayBuffer()
   },

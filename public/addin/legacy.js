@@ -27,6 +27,8 @@
   var participants = []
   var questions = []
   var host = location.host
+  // site Live à qui parler : celui de l'adresse de la diapo (ex. ICF), même si ce module vient d'un autre site
+  var BASE = ''
   var started = false
   var answersFor = null
 
@@ -67,7 +69,7 @@
     var x = new XMLHttpRequest()
     // anti-cache : Internet Explorer garde les réponses GET en mémoire
     var u = method === 'GET' ? url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + new Date().getTime() : url
-    x.open(method, u, true)
+    x.open(method, BASE + u, true)
     x.setRequestHeader('x-uid', uid)
     if (target) x.setRequestHeader('x-key', target.key)
     if (body) x.setRequestHeader('content-type', 'application/json')
@@ -131,7 +133,7 @@
   // ---------- affichage ----------
   function badge() {
     return (
-      '<div class="badge"><img src="/api/qr.svg?code=' + target.code + '" alt="" />' +
+      '<div class="badge"><img src="' + BASE + '/api/qr.svg?code=' + target.code + '" alt="" />' +
       (shownHost() ? esc(shownHost()) : 'Code') + '<br><b>' + target.code + '</b></div>'
     )
   }
@@ -220,7 +222,7 @@
       paint(
         '<div class="lobby"><div class="head"><h1>' + esc(s.title) + '</h1></div>' +
           '<div class="how" id="how">' + how + '</div>' +
-          '<div class="qr"><img src="/api/qr.svg?code=' + target.code + '" alt="QR code" /></div></div>'
+          '<div class="qr"><img src="' + BASE + '/api/qr.svg?code=' + target.code + '" alt="QR code" /></div></div>'
       )
       lastHtml = shell
       return
@@ -461,6 +463,8 @@
   function startWith(value) {
     saved = value
     target = parse(value && value.url)
+    var site = /^(https?:\/\/[^\/?#]+)/.exec(String((value && value.url) || ''))
+    BASE = site && site[1] !== location.protocol + '//' + location.host ? site[1] : ''
     if (!target) return setup('', value ? 'Adresse non reconnue.' : '')
     renderBar()
     render()
