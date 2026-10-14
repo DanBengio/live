@@ -29,8 +29,12 @@ export default function Host(props: Props) {
   const session = useSession(code)
   const participants = useParticipants(code)
   const item: Item | undefined = session?.status === 'active' ? session.items[session.currentIndex] : undefined
-  const answers = useAnswers(code, item?.id ?? null)
-  const questions = useQuestions(code, !!session && session.status !== 'lobby')
+  // En diapo, on affiche tout de suite l'activité de CETTE diapo (sans attendre que la salle ait
+  // suivi) : sinon l'activité précédente reste à l'écran une seconde au changement de diapo.
+  const shown = ppt && session ? showSlide(session, slide!) : session
+  const shownItem: Item | undefined = shown?.status === 'active' ? shown.items[shown.currentIndex] : undefined
+  const answers = useAnswers(code, shownItem?.id ?? null)
+  const questions = useQuestions(code, !!shown && shown.status !== 'lobby')
   const now = useNow(200)
   // en mode diapo, la clé de l'adresse a déjà été vérifiée par le serveur
   const isHost = !!session && (ppt || !!props.keyHost || (!!uid && session.hostId === uid))
@@ -105,6 +109,18 @@ export default function Host(props: Props) {
       window.removeEventListener('focus', h)
     }
   }) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const slideIndex = session && slide ? session.items.findIndex((i) => i.id === slide) : -1
+  const isItemSlide = ppt && slide !== 'accueil' && slide !== 'fin'
+  const missing = !!session && isItemSlide && slideIndex < 0
+  const outOfSync = !!session && (missing || (isItemSlide && (session.status !== 'active' || session.currentIndex !== slideIndex)))
+  const [stuck, setStuck] = useState(false)
+  useEffect(() => {
+    setStuck(false)
+    if (!live || !outOfSync) return
+    const t = setTimeout(() => setStuck(true), 5000)
+    return () => clearTimeout(t)
+  }, [live, outOfSync])
 
   // Fin du chrono → résultats automatiquement
   useEffect(() => {
@@ -189,19 +205,18 @@ export default function Host(props: Props) {
 
   if (ppt) {
     // en diapo, seul le déroulé du quiz se pilote ici ; « Suivant » appartient à PowerPoint
-    const quiz = session.status === 'active' && item?.type === 'quiz' && session.phase !== 'leaderboard'
-    const index = session.items.findIndex((i) => i.id === slide)
-    const isItem = slide !== 'accueil' && slide !== 'fin'
-    const missing = isItem && index < 0
-    const outOfSync = missing || (isItem && (session.status !== 'active' || session.currentIndex !== index))
+    const quiz = session.status === 'active' && item?.type === 'quiz' && session.phase !== 'leaderboard' && !outOfSync
+    // bouton de secours : sur la page web tout de suite, dans PowerPoint seulement si la salle
+    // n'a toujours pas suivi après quelques secondes
+    const showFix = missing || (outOfSync && (live === undefined || stuck))
     return (
       <>
         <Fit>
-          <Stage session={session} participants={participants} answers={answers} questions={questions} now={now} />
+          <Stage session={shown!} participants={participants} answers={answers} questions={questions} now={now} />
         </Fit>
-        {(quiz || outOfSync) && (
+        {(quiz || showFix) && (
           <div className="slidebar" onMouseDown={(e) => e.preventDefault()}>
-            {outOfSync ? (
+            {showFix ? (
               <button className="btn btn-primary" onClick={syncSlide}>
                 {missing ? 'Activité supprimée de la présentation' : 'Afficher cette activité'}
               </button>
@@ -299,4 +314,20 @@ export default function Host(props: Props) {
       </div>
     </>
   )
+}
+
+/** La session telle que l'affiche une diapo : son activité à elle, même si la salle n'a pas encore suivi */
+function showSlide(s: Session, slide: string): Session {
+  if (slide === 'accueil') return s.status === 'lobby' ? s : { ...s, status: 'lobby', currentIndex: -1, phase: 'question' }
+  if (slide === 'fin') return s.status === 'ended' ? s : { ...s, status: 'ended', phase: 'leaderboard' }
+  const i = s.items.findIndex((it) => it.id === slide)
+  if (i < 0 || (s.status === 'active' && s.currentIndex === i)) return s
+  return {
+    ...s,
+    status: 'active',
+    currentIndex: i,
+    phase: 'question',
+    questionStartedAt: s.items[i].type === 'quiz' ? null : (s.questionStartedAt ?? 0),
+    timerEndsAt: null,
+  }
 }

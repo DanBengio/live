@@ -100,6 +100,29 @@
     el.webkitTransform = t
   }
 
+  // ---------- ce que montre la diapo ----------
+  // La diapo affiche tout de suite SON activité, sans attendre que la salle ait suivi :
+  // sinon l'activité précédente reste visible une seconde au changement de diapo.
+  function targetItem(s) {
+    for (var i = 0; i < s.items.length; i++) if (s.items[i].id === target.slide) return s.items[i]
+    return null
+  }
+  function copy(s, patch) {
+    var o = {}
+    var k
+    for (k in s) if (s.hasOwnProperty(k)) o[k] = s[k]
+    for (k in patch) if (patch.hasOwnProperty(k)) o[k] = patch[k]
+    return o
+  }
+  function slideView(s) {
+    if (target.slide === 'accueil') return s.status === 'lobby' ? s : copy(s, { status: 'lobby', currentIndex: -1, phase: 'question' })
+    if (target.slide === 'fin') return s.status === 'ended' ? s : copy(s, { status: 'ended', phase: 'leaderboard' })
+    var index = -1
+    for (var i = 0; i < s.items.length; i++) if (s.items[i].id === target.slide) index = i
+    if (index < 0 || (s.status === 'active' && s.currentIndex === index)) return s
+    return copy(s, { status: 'active', currentIndex: index, phase: 'question', timerEndsAt: null })
+  }
+
   // ---------- affichage ----------
   function badge() {
     return (
@@ -171,7 +194,7 @@
     if (!session) {
       return paint('<div class="center muted">Live…</div>')
     }
-    var s = session
+    var s = slideView(session)
     if (s.status === 'lobby') {
       var names = ''
       var shown = participants.slice(-24)
@@ -332,7 +355,7 @@
           lastSession = txt
           var prev = session
           session = data
-          var item = data.status === 'active' ? data.items[data.currentIndex] : null
+          var item = targetItem(data)
           var id = item ? item.id : null
           if (id !== answersFor) {
             answersFor = id
@@ -376,7 +399,7 @@
     })
   }
   function pollQuestions() {
-    var item = session && session.status === 'active' ? session.items[session.currentIndex] : null
+    var item = session ? targetItem(session) : null
     if (item && item.type === 'qa' && active()) {
       api('GET', S() + '/questions', null, function (status, data) {
         if (status === 200 && data) {
