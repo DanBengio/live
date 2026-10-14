@@ -20,9 +20,12 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] Page PowerPoint du site (13/10) : déposer son .pptx (gardé sur le serveur dans `server/data/decks/`), choisir pour chaque question « Remplace la diapo n » ou « Après la diapo n », puis télécharger le fichier complet avec les modules posés (généré dans le navigateur, `src/lib/pptx.ts`). Sans fichier : téléchargement des seules diapos Live. Bouton « Dupliquer » sur l'accueil : mêmes questions, fichier et emplacements, nouveau code. Testé en local avec le deck ICF : résultat identique au fichier fait à la main, s'ouvre dans PowerPoint.
 - [x] Liens coach (13/10) : `/coach/<id>?k=<clé coach>`, sans compte. Le coach clique « Nouvelle conférence » (nouveau code, nouvelle clé de diapos, salle vide ; l'ancien code est archivé avec ses résultats et ne pilote plus rien), puis « Télécharger ma présentation » (fichier complet). Créé depuis la page PowerPoint de l'animateur (« Lien pour le coach »). Le lien « adopter » accepte aussi la clé coach. Testé en local.
 - [x] 13/10 : présentations coachs ICF créées en ligne (Mona, Sakina, Bahaâ), chacune avec le PowerPoint ICF et ses 18 emplacements ; page coach de Mona testée en ligne (téléchargement OK). Liens « adopter » donnés à Dan pour les voir dans « Mes présentations ».
+- [x] 14/10 : chez Bahaâ, le module est installé mais les diapos Live restent vides (ancienne version de PowerPoint, moteur Internet Explorer : l'application ne démarre pas). Ajouts : page coach → « Présentation sans module » (fichier d'origine) + « Présenter depuis le navigateur » (`/coach/<id>/presenter?k=`, pilotage au clavier avec la clé coach) ; dans le module, message d'explication au lieu d'un écran vide (script ES5 dans `index.html`). Version exacte d'Office de Bahaâ pas encore connue (Fichier → Compte).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
+
+**À mettre en ligne tout de suite (hors conférence)** : mode « Présenter depuis le navigateur » et « Présentation sans module » sur les pages coach, pour Bahaâ (PowerPoint ancien : les diapos Live restent vides). git pull + Build + Run.
 
 **Dan** : envoyer à Mona, Sakina et Bahaâ leur lien coach (donnés dans la conversation du 13/10, jamais dans ce fichier public). Chacune : installer le module une fois, puis avant chaque conférence « Nouvelle conférence » → « Télécharger ma présentation ».
 
@@ -92,3 +95,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **13 octobre 2026, soir** : Dan veut télécharger toute sa présentation depuis le site, sans pose manuelle. Fait : dépôt du .pptx, emplacements, téléchargement complet, Dupliquer. Poussé, à déployer.
 - **13 octobre 2026, soir** : conférence ICF avec 3 coachs (Mona, Sakina, Bahaâ), 3 conférences chacune. Ajout des liens coach avec nouveau code par conférence. Poussé, à déployer.
 - **13 octobre 2026, soir** : liens coach en ligne, 3 présentations coachs créées et vérifiées.
+- **14 octobre 2026** : PowerPoint trop ancien chez Bahaâ. Mode navigateur ajouté aux pages coach, testé en local, poussé, à déployer.

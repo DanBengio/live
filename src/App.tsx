@@ -7,6 +7,7 @@ import Ppt from './pages/Ppt'
 import PptLinks from './pages/PptLinks'
 import Addin from './pages/Addin'
 import Coach from './pages/Coach'
+import CoachPresenter from './pages/CoachPresenter'
 import Adopt from './pages/Adopt'
 import Join from './pages/Join'
 import Participant from './pages/Participant'
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/powerpoint/:id" element={<PptLinks />} />
       <Route path="/addin" element={<Addin />} />
       <Route path="/coach/:id" element={<Coach />} />
+      <Route path="/coach/:id/presenter" element={<CoachPresenter />} />
       <Route path="/adopter/:id" element={<Adopt />} />
       <Route path="/join" element={<Join />} />
       <Route path="/join/:code" element={<Join />} />

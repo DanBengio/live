@@ -16,6 +16,8 @@ interface Props {
    * La salle change d'activité au passage à true. Absent = page web : on synchronise au chargement.
    */
   live?: boolean
+  /** Animateur reconnu par la clé de la présentation (lien coach), pas par son navigateur */
+  keyHost?: boolean
 }
 
 export default function Host(props: Props) {
@@ -31,7 +33,7 @@ export default function Host(props: Props) {
   const questions = useQuestions(code, !!session && session.status !== 'lobby')
   const now = useNow(200)
   // en mode diapo, la clé de l'adresse a déjà été vérifiée par le serveur
-  const isHost = !!session && (ppt || (!!uid && session.hostId === uid))
+  const isHost = !!session && (ppt || !!props.keyHost || (!!uid && session.hostId === uid))
 
   const answersRef = useRef(answers)
   answersRef.current = answers

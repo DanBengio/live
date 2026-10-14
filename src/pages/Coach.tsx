@@ -59,6 +59,13 @@ export default function Coach() {
       setDownloadedCode(pres.code!)
     })
 
+  const downloadPlain = () =>
+    run('plain', async () => {
+      const deck = await coachApi.deck(pres.id, key)
+      const name = pres.deck?.name ?? `${pres.title}.pptx`
+      saveFile(new Blob([deck], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' }), name.replace(/[\\/:*?"<>|]/g, '-'))
+    })
+
   const day = (t?: number) =>
     t ? new Date(t).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : ''
   const done = pres.history?.length ?? 0
@@ -129,6 +136,30 @@ export default function Coach() {
           <li>Les participants peuvent rester en 4G si le Wi-Fi de la salle est chargé.</li>
         </ul>
         <p className="muted" style={{ fontSize: '0.85rem' }}>Ne partagez pas ce lien : il prépare vos conférences.</p>
+      </div>
+
+      <div className="card">
+        <h3>Les diapos Live restent vides ?</h3>
+        <p className="muted">
+          C’est le cas avec les anciennes versions de PowerPoint (2016, 2019). Dans ce cas :
+        </p>
+        <ol className="steps">
+          <li>
+            <div>Téléchargez votre présentation <b>sans module</b> (vos diapos d’origine) et projetez-la normalement.</div>
+            <button className="btn" onClick={downloadPlain} disabled={!!busy || !pres.deck}>
+              {busy === 'plain' ? 'Préparation…' : '⬇ Présentation sans module'}
+            </button>
+          </li>
+          <li>
+            <div>
+              Ouvrez les questions dans le navigateur. Au début, passez à cette fenêtre (Alt + Tab) pour afficher le QR code.
+              Ensuite, à chaque question, revenez-y : espace ou flèche → pour avancer, ← pour revenir. Même code de salle.
+            </div>
+            <a className="btn" href={`/coach/${pres.id}/presenter?k=${encodeURIComponent(key)}`} target="_blank" rel="noreferrer">
+              ▶ Présenter depuis le navigateur
+            </a>
+          </li>
+        </ol>
       </div>
     </div>
   )
