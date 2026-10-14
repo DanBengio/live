@@ -7,3 +7,4 @@ release
 server/data
 php/api/data/*.sqlite*
 sauvegardes
+server/data-*

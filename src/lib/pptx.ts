@@ -10,7 +10,16 @@
  */
 import type { Item, Placement, Presentation } from '../types'
 
-const ADDIN_ID = '84c365e6-a511-440e-8849-ace119baf7eb'
+/** Module PowerPoint du site en cours (chaque site a le sien : Dan, ICF…) */
+const DEFAULT_ADDIN_ID = '84c365e6-a511-440e-8849-ace119baf7eb'
+async function addinId(): Promise<string> {
+  try {
+    const info = await (await fetch('/api/info', { cache: 'no-store' })).json()
+    return info.addinId || DEFAULT_ADDIN_ID
+  } catch {
+    return DEFAULT_ADDIN_ID
+  }
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Zip = any
@@ -160,6 +169,7 @@ async function blankDeck(pres: Presentation, list: LiveSlide[]): Promise<ArrayBu
  */
 export async function buildPptx(pres: Presentation, origin: string, deck?: ArrayBuffer): Promise<{ blob: Blob; live: number }> {
   if (!pres.code || !pres.slideKey) throw new Error('Présentation sans code fixe')
+  const ADDIN_ID = await addinId()
   const list = liveSlides(pres, origin.replace(/^https?:\/\//, ''))
   const placed: { spec: LiveSlide; place: Placement; rank: number }[] = deck
     ? list.flatMap((spec, rank) => {

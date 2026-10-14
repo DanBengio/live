@@ -32,6 +32,18 @@
       "env": {
         "PUBLIC_URL": "https://sondage.baratextile.com"
       }
+    },
+    {
+      "name": "live-build-icf",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "server/index.js",
+        "--port",
+        "3300",
+        "--data",
+        "server/data-icf"
+      ],
+      "port": 3300
     }
   ]
 }

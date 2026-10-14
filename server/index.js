@@ -23,7 +23,25 @@ const arg = (name, fallback) => {
 }
 const PORT = Number(arg('--port', process.env.PORT || 3000))
 const PUBLIC_PORT = Number(arg('--public-port', PORT))
-const DATA_FILE = path.join(__dirname, 'data', 'db.json')
+// Données de CE site (un même code peut tourner sur plusieurs sites : Dan, ICF…, chacun ses données)
+const DATA_DIR = path.resolve(arg('--data', process.env.LIVE_DATA || path.join(__dirname, 'data')))
+const DATA_FILE = path.join(DATA_DIR, 'db.json')
+/**
+ * Réglages propres à ce site, dans <données>/instance.json (jamais dans le dépôt) :
+ *   publicUrl : adresse vue par les participants (QR code, « Rendez-vous sur… »)
+ *   addinId   : identifiant du module PowerPoint de ce site (un GUID par site)
+ *   addinName : nom du module dans PowerPoint
+ *   adminKey  : clé pour importer des présentations venant d'un autre site
+ */
+const INSTANCE = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'instance.json'), 'utf8'))
+  } catch {
+    return {}
+  }
+})()
+const ADDIN_ID = INSTANCE.addinId || '84c365e6-a511-440e-8849-ace119baf7eb'
+const ADDIN_NAME = INSTANCE.addinName || 'Live'
 const DIST = path.join(__dirname, '..', 'dist')
 
 // ---------- Stockage ----------
@@ -61,7 +79,8 @@ const lanUrl = `http://${lanIp()}:${PUBLIC_PORT}`
  * l'adresse Wi-Fi du PC.
  */
 function publicUrlFor(req) {
-  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, '')
+  const fixed = INSTANCE.publicUrl || process.env.PUBLIC_URL
+  if (fixed) return fixed.replace(/\/$/, '')
   const host = req.get('x-forwarded-host') || req.get('host') || ''
   if (!host || /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:|$)/.test(host)) return lanUrl
   const proto = req.get('x-forwarded-proto') || req.protocol || 'http'
@@ -114,7 +133,9 @@ function requireHost(req, res, s) {
 
 const app = express()
 app.disable('x-powered-by')
-app.use(express.json({ limit: '300kb' }))
+// corps JSON limités à 300 ko, sauf l'import d'une présentation complète (fichier PowerPoint compris)
+const smallJson = express.json({ limit: '300kb' })
+app.use((req, res, next) => (req.path === '/api/import' ? next() : smallJson(req, res, next)))
 app.use('/api', (_req, res, next) => {
   // no-cache = le navigateur revalide à chaque fois (ETag → 304 si rien n'a changé)
   res.set('Cache-Control', 'no-cache')
@@ -129,7 +150,97 @@ app.get('/api/qr.svg', (req, res) => {
   const svg = renderToStaticMarkup(createElement(QRCodeSVG, { value: `${publicUrlFor(req)}/join/${code}`, size: 600, level: 'M', bgColor: '#ffffff', fgColor: '#0b1020' }))
   res.set('Cache-Control', 'public, max-age=86400').type('image/svg+xml').send(svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))
 })
-app.get('/api/info', (req, res) => res.json({ name: 'node', publicUrl: publicUrlFor(req), pollMs: 1000 }))
+app.get('/api/info', (req, res) => res.json({ name: 'node', publicUrl: publicUrlFor(req), pollMs: 1000, addinId: ADDIN_ID }))
+
+// ---------- Module PowerPoint de ce site (manifeste et installateurs fabriqués à la demande) ----------
+const xmlEsc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+app.get('/addin/manifest.xml', (req, res) => {
+  const o = xmlEsc(publicUrlFor(req))
+  const id = xmlEsc(ADDIN_ID)
+  const name = xmlEsc(ADDIN_NAME)
+  res
+    .set('Cache-Control', 'no-store')
+    .type('application/xml')
+    .send(
+      [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        `<!-- Module PowerPoint « ${name} » : affiche une activité Live dans une diapo -->`,
+        '<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"',
+        '           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+        '           xsi:type="ContentApp">',
+        `  <Id>${id}</Id>`,
+        '  <Version>1.0.0.0</Version>',
+        '  <ProviderName>Live</ProviderName>',
+        '  <DefaultLocale>fr-FR</DefaultLocale>',
+        `  <DisplayName DefaultValue="${name}" />`,
+        '  <Description DefaultValue="Sondages, nuages de mots et quiz en direct dans vos diapos." />',
+        `  <IconUrl DefaultValue="${o}/addin/icon-32.png" />`,
+        `  <HighResolutionIconUrl DefaultValue="${o}/addin/icon-64.png" />`,
+        `  <SupportUrl DefaultValue="${o}/" />`,
+        '  <AppDomains>',
+        `    <AppDomain>${o}</AppDomain>`,
+        '  </AppDomains>',
+        '  <Hosts>',
+        '    <Host Name="Presentation" />',
+        '  </Hosts>',
+        '  <DefaultSettings>',
+        `    <SourceLocation DefaultValue="${o}/addin/" />`,
+        '    <RequestedWidth>800</RequestedWidth>',
+        '    <RequestedHeight>450</RequestedHeight>',
+        '  </DefaultSettings>',
+        '  <Permissions>ReadWriteDocument</Permissions>',
+        '  <AllowSnapshot>true</AllowSnapshot>',
+        '</OfficeApp>',
+        '',
+      ].join('\n'),
+    )
+})
+// Installateurs Windows : un dossier et une clé de registre par module (deux sites = deux modules)
+const BS = '\\'
+const regKey = ['HKCU', 'Software', 'Microsoft', 'Office', '16.0', 'WEF', 'Developer'].join(BS)
+const addinDir = ['%LOCALAPPDATA%', 'LiveAddin', ADDIN_ID].join(BS)
+const bat = (lines) => lines.join('\r\n') + '\r\n'
+app.get('/addin/installer-module-live.bat', (req, res) => {
+  res
+    .set('Cache-Control', 'no-store')
+    .type('application/x-msdownload')
+    .send(
+      bat([
+        '@echo off',
+        `rem Installe le module PowerPoint "${ADDIN_NAME}" pour cet utilisateur Windows (une seule fois par PC).`,
+        `set "DIR=${addinDir}"`,
+        'if not exist "%DIR%" mkdir "%DIR%"',
+        `curl -fsSL "${publicUrlFor(req)}/addin/manifest.xml" -o "%DIR%${BS}manifest.xml"`,
+        'if errorlevel 1 (',
+        '  echo Telechargement impossible : verifiez la connexion internet.',
+        '  pause',
+        '  exit /b 1',
+        ')',
+        `reg add "${regKey}" /v "${ADDIN_ID}" /t REG_SZ /d "%DIR%${BS}manifest.xml" /f >nul`,
+        'echo.',
+        `echo Module ${ADDIN_NAME} installe.`,
+        "echo Fermez PowerPoint s'il est ouvert, puis rouvrez-le :",
+        `echo Insertion, Complements, Mes complements, ${ADDIN_NAME}.`,
+        'echo.',
+        'pause',
+      ]),
+    )
+})
+app.get('/addin/desinstaller-module-live.bat', (_req, res) => {
+  res
+    .set('Cache-Control', 'no-store')
+    .type('application/x-msdownload')
+    .send(
+      bat([
+        '@echo off',
+        `rem Retire le module PowerPoint "${ADDIN_NAME}".`,
+        `reg delete "${regKey}" /v "${ADDIN_ID}" /f >nul 2>nul`,
+        `rmdir /s /q "${addinDir}" 2>nul`,
+        `echo Module ${ADDIN_NAME} retire. Fermez et rouvrez PowerPoint.`,
+        'pause',
+      ]),
+    )
+})
 
 // Présentations (privées à leur auteur)
 app.get('/api/presentations', (req, res) => {
@@ -173,7 +284,7 @@ app.put('/api/presentations/:id', (req, res) => {
 
 // Fichier PowerPoint de l'animateur, gardé sur le serveur pour pouvoir le retélécharger
 // complet (avec les diapos Live) à tout moment, depuis n'importe quel ordinateur.
-const DECKS = path.join(__dirname, 'data', 'decks')
+const DECKS = path.join(DATA_DIR, 'decks')
 const deckFile = (id) => path.join(DECKS, `${id.replace(/[^\w-]/g, '')}.pptx`)
 const ownPres = (req, res) => {
   const p = db.presentations[req.params.id]
@@ -268,6 +379,47 @@ app.post('/api/coach/:id/new-code', (req, res) => {
   p.resetAt = 0
   save()
   res.json(coachView(p))
+})
+
+// ---------- Déménagement d'une présentation vers un autre site (ex. du site de Dan vers celui d'ICF) ----------
+// Export : la présentation complète (clés comprises), son fichier PowerPoint et toutes ses salles
+// (code actuel, anciens codes, archives « code~date »), avec participants, réponses et questions.
+app.get('/api/export/:id', (req, res) => {
+  const p = db.presentations[req.params.id]
+  const uid = uidOf(req)
+  const key = req.get('x-key')
+  if (!p || !((uid && p.ownerId === uid) || (key && key === p.coachKey))) return res.status(404).json({ error: 'Présentation introuvable' })
+  const codes = new Set([p.code, ...(p.history ?? []).map((h) => h.code)])
+  const rooms = {}
+  for (const k of Object.keys(db.sessions)) {
+    if (!codes.has(k.split('~')[0])) continue
+    if (db.sessions[k].presId && db.sessions[k].presId !== p.id) continue
+    rooms[k] = { session: db.sessions[k], participants: db.participants[k] ?? {}, answers: db.answers[k] ?? {}, questions: db.questions[k] ?? {} }
+  }
+  const deck = p.deck && fs.existsSync(deckFile(p.id)) ? fs.readFileSync(deckFile(p.id)).toString('base64') : null
+  res.set('Cache-Control', 'no-store').json({ presentation: p, deck, rooms })
+})
+// Import : réservé à l'administrateur du site (clé adminKey de instance.json)
+app.post('/api/import', express.json({ limit: '120mb' }), (req, res) => {
+  if (!INSTANCE.adminKey || req.get('x-admin') !== INSTANCE.adminKey) return res.status(403).json({ error: 'Refusé' })
+  const { presentation: p, deck, rooms } = req.body ?? {}
+  if (!p?.id || !p.code) return res.status(400).json({ error: 'Présentation invalide' })
+  if (db.presentations[p.id]) return res.status(409).json({ error: 'Présentation déjà présente' })
+  const clash = Object.keys(rooms ?? {}).filter((k) => db.sessions[k]).concat(Object.values(db.presentations).some((x) => x.code === p.code) ? [p.code] : [])
+  if (clash.length) return res.status(409).json({ error: `Codes déjà utilisés : ${clash.join(', ')}` })
+  db.presentations[p.id] = p
+  for (const [k, r] of Object.entries(rooms ?? {})) {
+    db.sessions[k] = r.session
+    db.participants[k] = r.participants ?? {}
+    db.answers[k] = r.answers ?? {}
+    db.questions[k] = r.questions ?? {}
+  }
+  if (deck) {
+    fs.mkdirSync(DECKS, { recursive: true })
+    fs.writeFileSync(deckFile(p.id), Buffer.from(deck, 'base64'))
+  }
+  save()
+  res.json({ ok: true, id: p.id, code: p.code, rooms: Object.keys(rooms ?? {}).length })
 })
 
 // Dupliquer : mêmes questions, même fichier PowerPoint et mêmes emplacements, nouveau code
