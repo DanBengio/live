@@ -86,10 +86,12 @@
   }
 
   // ---------- mise à l'échelle 16:9 ----------
+  var lastSize = ''
   function fit() {
     var w = document.documentElement.clientWidth || window.innerWidth
     var h = document.documentElement.clientHeight || window.innerHeight
-    if (!w || !h) return
+    if (!w || !h || w + 'x' + h === lastSize) return
+    lastSize = w + 'x' + h
     var s = Math.min(w / W, h / H)
     var t = 'translate(' + (w - W * s) / 2 + 'px,' + (h - H * s) / 2 + 'px) scale(' + s + ')'
     var el = $('fit').style
@@ -156,37 +158,51 @@
     if (!list.length) html += '<div class="muted" style="font-size:28px;padding-top:120px">En attente des premiers mots…</div>'
     return html + '</div>'
   }
+  // Ne touche à l'écran que si le contenu a changé : redessiner (et redécoder le QR code)
+  // chaque seconde fait geler le vieux moteur d'Internet Explorer.
+  var lastHtml = null
+  function paint(html) {
+    if (html === lastHtml) return
+    lastHtml = html
+    $('stage').innerHTML = html
+  }
   function render() {
-    var st = $('stage')
+    var st = { innerHTML: '' }
     if (!session) {
-      st.innerHTML = '<div class="center muted">Live…</div>'
-      return
+      return paint('<div class="center muted">Live…</div>')
     }
     var s = session
     if (s.status === 'lobby') {
       var names = ''
       var shown = participants.slice(-24)
       for (var i = 0; i < shown.length; i++) names += esc(shown[i].name) + (i < shown.length - 1 ? ' · ' : '')
-      st.innerHTML =
-        '<div class="lobby"><div class="head"><h1>' + esc(s.title) + '</h1></div>' +
-        '<div class="how">Rendez-vous sur <b>' + esc(host) + '</b><br>et entrez le code' +
+      var how =
+        'Rendez-vous sur <b>' + esc(host) + '</b><br>et entrez le code' +
         '<div class="code">' + target.code + '</div>' +
         '<div class="muted" style="font-size:22px">' + participants.length + ' participant' + (participants.length > 1 ? 's' : '') + ' dans la salle</div>' +
-        '<div class="muted" style="font-size:16px;margin-top:10px">' + names + '</div></div>' +
-        '<div class="qr"><img src="/api/qr.svg?code=' + target.code + '" alt="QR code" /></div></div>'
+        '<div class="muted" style="font-size:16px;margin-top:10px">' + names + '</div>'
+      // l'accueil est déjà affiché : on ne met à jour que le texte, le QR code reste en place
+      var shell = 'lobby:' + target.code + ':' + s.title
+      if (lastHtml === shell && $('how')) {
+        if ($('how').innerHTML !== how) $('how').innerHTML = how
+        return
+      }
+      paint(
+        '<div class="lobby"><div class="head"><h1>' + esc(s.title) + '</h1></div>' +
+          '<div class="how" id="how">' + how + '</div>' +
+          '<div class="qr"><img src="/api/qr.svg?code=' + target.code + '" alt="QR code" /></div></div>'
+      )
+      lastHtml = shell
       return
     }
     if (s.status === 'ended') {
       st.innerHTML =
         '<div class="center">Merci ! 🙏<div class="muted" style="font-size:24px;margin-top:20px">' + esc(s.title) + ' · ' +
         participants.length + ' participant' + (participants.length > 1 ? 's' : '') + '</div></div>'
-      return
+      return paint(st.innerHTML)
     }
     var item = s.items[s.currentIndex]
-    if (!item) {
-      st.innerHTML = ''
-      return
-    }
+    if (!item) return paint('')
     var body = ''
     var foot = ''
     if (s.phase === 'leaderboard') {
@@ -217,6 +233,7 @@
     st.innerHTML =
       '<div class="head"><h1>' + esc(s.phase === 'leaderboard' ? '🏆 Classement' : item.title) + '</h1>' + badge() + '</div>' +
       '<div class="body">' + body + '</div><div class="foot">' + foot + '</div>'
+    paint(st.innerHTML)
   }
   function renderBar() {
     var b = $('bar')
@@ -292,10 +309,20 @@
     }
     if (current && !wasCurrent && session) sync()
     wasCurrent = current && !!session
-    setTimeout(watchSlide, 700)
+    setTimeout(watchSlide, 1000)
   }
 
   // ---------- interrogation du serveur ----------
+  // En diaporama, seule la diapo à l'écran interroge le serveur vite ; les autres modules
+  // (jusqu'à une vingtaine chargés en même temps) se mettent en veille.
+  function active() {
+    return !office || view !== 'read' || current
+  }
+  function pace(ms) {
+    if (!office) return ms
+    if (view === 'read') return current ? ms : 6000
+    return ms * 3 // mode Normal : simple aperçu
+  }
   var lastSession = ''
   function pollSession() {
     api('GET', S(), null, function (status, data) {
@@ -315,41 +342,50 @@
           render()
         }
       }
-      setTimeout(pollSession, 1000)
+      setTimeout(pollSession, pace(1000))
     })
   }
   function pollAnswers() {
-    if (answersFor) {
+    if (answersFor && active()) {
       var item = answersFor
       api('GET', S() + '/answers?item=' + encodeURIComponent(item), null, function (status, data) {
         if (status === 200 && data && item === answersFor) {
+          var n = data.length
+          var changed = n !== answers.length || JSON.stringify(data) !== JSON.stringify(answers)
           answers = data
-          render()
+          if (changed) render()
         }
-        setTimeout(pollAnswers, 1000)
+        setTimeout(pollAnswers, pace(1000))
       })
-    } else setTimeout(pollAnswers, 1000)
+    } else setTimeout(pollAnswers, pace(1000))
   }
+  var lastPeople = ''
   function pollPeople() {
+    if (!active()) return setTimeout(pollPeople, pace(2000))
     api('GET', S() + '/participants', null, function (status, data) {
       if (status === 200 && data) {
+        // seuls le nombre et les prénoms comptent pour l'affichage
+        var key = data.length + '|' + (data.length ? data[data.length - 1].id : '')
         participants = data
-        render()
+        if (key !== lastPeople) {
+          lastPeople = key
+          render()
+        }
       }
-      setTimeout(pollPeople, 2000)
+      setTimeout(pollPeople, pace(2000))
     })
   }
   function pollQuestions() {
     var item = session && session.status === 'active' ? session.items[session.currentIndex] : null
-    if (item && item.type === 'qa') {
+    if (item && item.type === 'qa' && active()) {
       api('GET', S() + '/questions', null, function (status, data) {
         if (status === 200 && data) {
           questions = data
           render()
         }
-        setTimeout(pollQuestions, 1500)
+        setTimeout(pollQuestions, pace(1500))
       })
-    } else setTimeout(pollQuestions, 1500)
+    } else setTimeout(pollQuestions, pace(1500))
   }
 
   function startWith(value) {
@@ -380,7 +416,7 @@
   function boot() {
     fit()
     window.onresize = fit
-    setInterval(fit, 1000)
+    setInterval(fit, 2000)
     var doc = window.Office && Office.context && Office.context.document
     if (!doc) {
       // hors PowerPoint : mode test avec ?url=

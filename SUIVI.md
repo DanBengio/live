@@ -22,9 +22,12 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 13/10 : présentations coachs ICF créées en ligne (Mona, Sakina, Bahaâ), chacune avec le PowerPoint ICF et ses 18 emplacements ; page coach de Mona testée en ligne (téléchargement OK). Liens « adopter » donnés à Dan pour les voir dans « Mes présentations ».
 - [x] 14/10 : chez Bahaâ, le module est installé mais les diapos Live restent vides (ancienne version de PowerPoint, moteur Internet Explorer : l'application ne démarre pas). Ajouts : page coach → « Présentation sans module » (fichier d'origine) + « Présenter depuis le navigateur » (`/coach/<id>/presenter?k=`, pilotage au clavier avec la clé coach) ; dans le module, message d'explication au lieu d'un écran vide (script ES5 dans `index.html`). Version exacte d'Office de Bahaâ pas encore connue (Fichier → Compte).
 - [x] 14/10 : module compatible anciens PowerPoint (moteur Internet Explorer 11 / Edge ancien). `index.html` détecte le vieux moteur sur `/addin` et bascule vers `public/addin/legacy.html` (ES5 écrit à la main : accueil + QR code servi par le serveur `/api/qr.svg`, barres, nuage de mots en liste, questions du public, la salle suit les diapos). Testé dans le vrai moteur IE11 de Windows avec `scripts/test-moteur-ie.ps1` (mode document 11) : rendu correct. **Mis en ligne et confirmé par Dan le 14/10 : fonctionne chez Bahaâ.** Le quiz s'y affiche mais son chrono ne se pilote pas depuis la diapo.
+- [x] 14/10 : la présentation de Bahaâ gelait parfois. Cause probable : ses ~18 modules tournent en même temps dans le vieux moteur, chacun interrogeant le site et PowerPoint chaque seconde et redessinant tout (QR code compris). Correctif dans `legacy.js` : seule la diapo à l'écran travaille (les autres en veille, 6 s), redessin seulement si le contenu change, QR code jamais redessiné, appels à PowerPoint espacés (1 s). Vérifié dans le moteur IE11 : 0 redessin en 8 s sans changement, nouveaux participants bien affichés. Fichier contrôlé en ES5 strict (acorn).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
+
+**À mettre en ligne (hors conférence)** : correctif des blocages de la présentation de Bahaâ (version anciens PowerPoint). git pull + Build + Run, puis Bahaâ ferme et rouvre PowerPoint.
 
 
 **Dan** : envoyer à Mona, Sakina et Bahaâ leur lien coach (donnés dans la conversation du 13/10, jamais dans ce fichier public). Chacune : installer le module une fois, puis avant chaque conférence « Nouvelle conférence » → « Télécharger ma présentation ».
@@ -98,3 +101,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026** : PowerPoint trop ancien chez Bahaâ. Mode navigateur ajouté aux pages coach, testé en local, poussé, à déployer.
 - **14 octobre 2026** : option A choisie pour Bahaâ : version du module pour anciens PowerPoint, testée dans le moteur IE11, poussée, à déployer.
 - **14 octobre 2026** : version anciens PowerPoint en ligne, fonctionne chez Bahaâ (QR code compris). Mona et Sakina inchangées.
+- **14 octobre 2026** : blocages chez Bahaâ, correctif d'allègement de la version anciens PowerPoint, poussé, à déployer.
