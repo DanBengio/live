@@ -305,6 +305,46 @@
     }
   }
 
+  // ---------- passer les diapos depuis le module ----------
+  // En diaporama, le module garde le clavier et la souris : sans ça, flèches, espace ou
+  // télécommande n'arrivent plus à PowerPoint. On les lui renvoie.
+  var NEXT = { 39: 1, 40: 1, 34: 1, 32: 1, 13: 1, 78: 1 } // → ↓ Page suiv. espace Entrée N
+  var PREV = { 37: 1, 38: 1, 33: 1, 8: 1, 80: 1 } // ← ↑ Page préc. retour arrière P
+  function go(next) {
+    if (!office || view !== 'read' || !office.goToByIdAsync) return
+    office.goToByIdAsync(next ? Office.Index.Next : Office.Index.Previous, Office.GoToType.Index, function () {})
+  }
+  function onKey(e) {
+    e = e || window.event
+    var k = e.keyCode || e.which
+    if (view !== 'read' || !office) return
+    var t = e.target || e.srcElement
+    if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return
+    if (NEXT[k] || PREV[k]) {
+      go(!!NEXT[k])
+      if (e.preventDefault) e.preventDefault()
+      e.returnValue = false
+      return false
+    }
+  }
+  function onClick(e) {
+    e = e || window.event
+    if (view !== 'read' || !office) return
+    var t = e.target || e.srcElement
+    while (t && t !== document.body) {
+      if (/^(A|BUTTON|INPUT)$/.test(t.tagName)) return
+      t = t.parentNode
+    }
+    go(true) // un clic fait avancer, comme dans PowerPoint
+  }
+  if (document.addEventListener) {
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('click', onClick, true)
+  } else {
+    document.attachEvent('onkeydown', onKey)
+    document.attachEvent('onclick', onClick)
+  }
+
   // ---------- la salle suit les diapos ----------
   function sync() {
     var s = session

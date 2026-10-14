@@ -25,12 +25,13 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : la présentation de Bahaâ gelait parfois. Cause probable : ses ~18 modules tournent en même temps dans le vieux moteur, chacun interrogeant le site et PowerPoint chaque seconde et redessinant tout (QR code compris). Correctif dans `legacy.js` : seule la diapo à l'écran travaille (les autres en veille, 6 s), redessin seulement si le contenu change, QR code jamais redessiné, appels à PowerPoint espacés (1 s). Vérifié dans le moteur IE11 : 0 redessin en 8 s sans changement, nouveaux participants bien affichés. Fichier contrôlé en ES5 strict (acorn).
 - [x] 14/10 : une seconde de décalage au changement de diapo (l'activité précédente restait visible), chez Mona comme chez Bahaâ. Cause : chaque diapo affichait l'activité en cours de la salle, pas la sienne, en attendant que la salle suive. Correctif dans les deux versions du module (`showSlide` dans `Host.tsx`, `slideView` dans `legacy.js`) : la diapo affiche tout de suite sa propre activité et ses réponses ; le bouton de secours « Afficher cette activité » n'apparaît dans PowerPoint qu'après 5 s sans synchronisation. Vérifié : la page affiche la bonne activité dès la première image ; version ancienne revérifiée dans le moteur IE11.
 - [x] 14/10 : l'adresse du site n'apparaît plus à l'écran tant qu'elle contient « baratextile » (`visibleJoinHost` dans `src/lib/origin.ts`, `shownHost` dans `legacy.js`) : accueil « Scannez le QR code » + code, badge « Code ». Elle réapparaîtra seule avec un domaine propre (régler alors PUBLIC_URL sur le serveur). Reste visible en petit dans la barre d'adresse des téléphones.
+- [x] 14/10 : chez Bahaâ, impossible de passer à la diapo suivante après une diapo Live (le module garde clavier et souris en diaporama). Correctif dans les deux versions : le module renvoie à PowerPoint → ↓ Page suiv. espace Entrée N (suivante), ← ↑ Page préc. retour arrière P (précédente) et le clic (suivante) via `goToByIdAsync(Office.Index.Next/Previous)`. À tester en vrai après mise en ligne (Claude sur son PowerPoint récent, Bahaâ sur l'ancien).
 - [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**À mettre en ligne (hors conférence)** : correctifs du 14/10 (blocages chez Bahaâ, décalage au changement de diapo, adresse « baratextile » retirée de l'écran). git pull + Build + Run, puis chaque coach ferme et rouvre PowerPoint.
+**À mettre en ligne (hors conférence)** : correctifs du 14/10 (diapos qui ne passent plus après une diapo Live chez Bahaâ, blocages chez Bahaâ, décalage au changement de diapo, adresse « baratextile » retirée de l'écran). git pull + Build + Run, puis chaque coach ferme et rouvre PowerPoint.
 
 **Dan** : choisir un nom pour l'application (propositions du 14/10 dans la conversation : Salle Vive, Écho Salle, Lève la main…), puis acheter le domaine chez Infomaniak.
 
@@ -109,3 +110,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026** : blocages chez Bahaâ, correctif d'allègement de la version anciens PowerPoint, poussé, à déployer.
 - **14 octobre 2026** : correctif du décalage au changement de diapo, poussé avec le correctif des blocages, à déployer.
 - **14 octobre 2026** : adresse retirée de l'écran projeté, propositions de noms d'application.
+- **14 octobre 2026** : correctif de navigation dans le diaporama (diapo suivante depuis une diapo Live), poussé, à déployer puis tester.

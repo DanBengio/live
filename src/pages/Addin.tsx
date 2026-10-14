@@ -66,6 +66,37 @@ export default function Addin() {
     )
   }, [])
 
+  // En diaporama, le module garde le clavier et la souris : flèches, espace ou télécommande
+  // n'arrivent plus à PowerPoint (surtout dans les anciennes versions). On les lui renvoie.
+  useEffect(() => {
+    if (!office || view !== 'read') return
+    const doc = office.context.document
+    if (!doc.goToByIdAsync) return
+    const go = (next: boolean) => doc.goToByIdAsync(next ? office.Index.Next : office.Index.Previous, office.GoToType.Index, () => {})
+    const NEXT = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter', 'n', 'N']
+    const PREV = ['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace', 'p', 'P']
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (NEXT.includes(e.key) || PREV.includes(e.key)) {
+        e.preventDefault()
+        e.stopPropagation()
+        go(NEXT.includes(e.key))
+      }
+    }
+    // un clic fait avancer, comme dans PowerPoint (sauf sur un bouton, ex. chrono du quiz)
+    const onClick = (e: MouseEvent) => {
+      if ((e.target as HTMLElement | null)?.closest('button, a, input')) return
+      go(true)
+    }
+    window.addEventListener('keydown', onKey, true)
+    window.addEventListener('click', onClick, true)
+    return () => {
+      window.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('click', onClick, true)
+    }
+  }, [office, view])
+
   // En diaporama : est-ce notre diapo qui est à l'écran ?
   useEffect(() => {
     if (!office || view !== 'read' || !saved) return setCurrent(false)
