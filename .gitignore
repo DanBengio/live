@@ -6,3 +6,4 @@ release
 .firebase
 server/data
 php/api/data/*.sqlite*
+sauvegardes
