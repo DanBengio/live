@@ -199,7 +199,7 @@ export default function Host(props: Props) {
     return (
       <div className="page">
         <p>Session introuvable.</p>
-        <Link to="/">← Accueil</Link>
+        <Link to="/presentations">← Accueil</Link>
       </div>
     )
 
@@ -307,7 +307,7 @@ export default function Host(props: Props) {
             Terminer
           </button>
         ) : (
-          <Link className="btn" to="/">
+          <Link className="btn" to="/presentations">
             ← Accueil
           </Link>
         )}

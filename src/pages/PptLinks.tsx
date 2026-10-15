@@ -89,7 +89,7 @@ export default function PptLinks() {
     return (
       <div className="page">
         <p>Présentation introuvable.</p>
-        <Link to="/">← Mes présentations</Link>
+        <Link to="/presentations">← Mes présentations</Link>
       </div>
     )
 
@@ -154,7 +154,7 @@ export default function PptLinks() {
   return (
     <div className="page">
       <div className="page-header">
-        <Link to="/" className="btn btn-ghost">
+        <Link to="/presentations" className="btn btn-ghost">
           ← Mes présentations
         </Link>
         <h1>PowerPoint · {pres.title}</h1>

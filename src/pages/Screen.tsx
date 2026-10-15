@@ -17,7 +17,7 @@ export default function Screen() {
     return (
       <div className="page">
         <p>Session introuvable.</p>
-        <Link to="/">← Accueil</Link>
+        <Link to="/presentations">← Accueil</Link>
       </div>
     )
   return <Stage session={session} participants={participants} answers={answers} questions={questions} now={now} />

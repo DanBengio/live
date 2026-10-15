@@ -37,6 +37,8 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Prochaine action
 
+**À mettre en ligne (hors conférence)** : page d'accueil = saisie du code (les étudiants ne voient plus la création de présentations) ; « Mes présentations » déplacé à /presentations. git pull + Build + Run.
+
 **Espace ICF (décidé le 14/10 : un seul site Node.js chez Infomaniak — l'offre n'en permet qu'un —, deux espaces aux données séparées)** — dans l'ordre :
 1. ✅ 15/10 : sous-domaine **edvantis.coachingfederation.ma** créé par le webmaster d'ICF (DNS chez Hostinger, CNAME vers sondage.baratextile.com).
 2. ✅ 15/10 : ajouté comme alias du site Infomaniak (sans www ni mise à jour DNS), certificat Let's Encrypt mis à jour (⋮ → « Mettre à jour le certificat ») : https fonctionne.
@@ -92,6 +94,8 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Repères et accès
 
+- « Mes présentations » (espace animateur) : https://sondage.baratextile.com/presentations (depuis le 15/10 ; l'adresse seule mène à la saisie du code).
+
 - Manager Infomaniak : Web & Domaines → baratextile.com → site `sondage.baratextile.com` (Tableau de bord, Consoles, Avancé).
 - Console SSH du site : utilisateur `client`, dossier `/srv/customer/sites/sondage.baratextile.com`, serveur interne non joignable depuis l'extérieur (d'où le passage par GitHub).
 - Ancien hébergement (site baratextile.com) : utilisateur SSH `uid133012`, dossier `web` = site existant, **ne pas toucher**.
@@ -137,3 +141,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026, nuit** : l'offre Infomaniak ne permet qu'un site Node.js : option B, un seul site avec deux espaces aux données séparées. Codé et testé en local.
 - **15 octobre 2026** : edvantis.coachingfederation.ma en place (DNS + alias + https). Reste : mise à jour du site + création de l'espace ICF (SSH), puis déménagement des coachs.
 - **15 octobre 2026** : espace ICF en ligne sur edvantis.coachingfederation.ma, 3 coachs déménagés. Les anciens fichiers PowerPoint des coachs ne marchent plus : chacune retélécharge depuis son nouveau lien.
+- **15 octobre 2026** : accueil réservé aux participants (saisie du code), espace animateur sur /presentations. Poussé, à déployer.

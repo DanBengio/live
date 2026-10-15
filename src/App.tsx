@@ -15,7 +15,9 @@ import Participant from './pages/Participant'
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* page d'accueil = saisie du code (participants) ; l'espace animateur est à part */}
+      <Route path="/" element={<Join />} />
+      <Route path="/presentations" element={<Home />} />
       <Route path="/edit/:id" element={<Editor />} />
       <Route path="/host/:code" element={<Host />} />
       <Route path="/screen/:code" element={<Screen />} />

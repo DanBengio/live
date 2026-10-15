@@ -86,7 +86,7 @@ export default function Editor() {
     return (
       <div className="page">
         <p>Présentation introuvable.</p>
-        <Link to="/">← Retour</Link>
+        <Link to="/presentations">← Retour</Link>
       </div>
     )
 
@@ -95,7 +95,7 @@ export default function Editor() {
   return (
     <div className="page">
       <div className="page-header">
-        <Link to="/" className="btn btn-ghost">
+        <Link to="/presentations" className="btn btn-ghost">
           ← Mes présentations
         </Link>
         <input
