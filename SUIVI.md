@@ -1,6 +1,6 @@
 # Live — suivi du projet
 
-Dernière mise à jour : 12 octobre 2026, nuit (Dan est parti dormir).
+Dernière mise à jour : 15 octobre 2026.
 
 ## En une phrase
 
@@ -36,8 +36,6 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
-
-**À mettre en ligne (hors conférence)** : page d'accueil = saisie du code (les étudiants ne voient plus la création de présentations) ; « Mes présentations » déplacé à /presentations. git pull + Build + Run.
 
 **Espace ICF (décidé le 14/10 : un seul site Node.js chez Infomaniak — l'offre n'en permet qu'un —, deux espaces aux données séparées)** — dans l'ordre :
 1. ✅ 15/10 : sous-domaine **edvantis.coachingfederation.ma** créé par le webmaster d'ICF (DNS chez Hostinger, CNAME vers sondage.baratextile.com).
@@ -142,3 +140,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **15 octobre 2026** : edvantis.coachingfederation.ma en place (DNS + alias + https). Reste : mise à jour du site + création de l'espace ICF (SSH), puis déménagement des coachs.
 - **15 octobre 2026** : espace ICF en ligne sur edvantis.coachingfederation.ma, 3 coachs déménagés. Les anciens fichiers PowerPoint des coachs ne marchent plus : chacune retélécharge depuis son nouveau lien.
 - **15 octobre 2026** : accueil réservé aux participants (saisie du code), espace animateur sur /presentations. Poussé, à déployer.
+- **15 octobre 2026** : accueil participants en ligne, confirmé par Dan (« tout fonctionne »).
