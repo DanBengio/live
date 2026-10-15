@@ -38,8 +38,8 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 ## Prochaine action
 
 **Espace ICF (décidé le 14/10 : un seul site Node.js chez Infomaniak — l'offre n'en permet qu'un —, deux espaces aux données séparées)** — dans l'ordre :
-1. Le webmaster d'ICF crée le sous-domaine : CNAME vers `sondage.baratextile.com` (ou A 185.125.27.89 + AAAA 2001:1600:4:11::576). Consignes envoyées par Dan.
-2. Dan ajoute ce sous-domaine au site actuel (encadré « 2 domaines » → +), puis active le certificat.
+1. ✅ 15/10 : sous-domaine **edvantis.coachingfederation.ma** créé par le webmaster d'ICF (DNS chez Hostinger, CNAME vers sondage.baratextile.com).
+2. ✅ 15/10 : ajouté comme alias du site Infomaniak (sans www ni mise à jour DNS), certificat Let's Encrypt mis à jour (⋮ → « Mettre à jour le certificat ») : https fonctionne.
 3. Dan met à jour le site (git pull, Build, Run), puis colle dans la console SSH la commande de Claude qui crée `server/data/espaces/icf/instance.json` (hosts = sous-domaine, publicUrl = https://sous-domaine, adminKey préparée dans `sauvegardes/2026-10-14/prive/instance-icf.json`), puis Run.
 4. Claude déménage les 3 présentations coachs (Mona, Sakina, Bahaâ) vers l'espace ICF avec `scripts/demenager-presentation.cjs <site> https://<sous-domaine> <adminKey> liste.json --supprimer`, hors conférence, et donne les nouveaux liens coach.
 5. Chaque coach : rien à installer (même module Live), juste télécharger sa présentation depuis sa nouvelle page coach.
@@ -135,3 +135,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026, nuit** : décision de faire un site ICF séparé (même code). Sauvegarde complète, puis réglages par site et déménagement codés et testés en local. Le sous-domaine ICF arrive le 15/10.
 - **14 octobre 2026, nuit** : option A retenue (les coachs gardent le module Live). Module multi-sites codé et testé en local.
 - **14 octobre 2026, nuit** : l'offre Infomaniak ne permet qu'un site Node.js : option B, un seul site avec deux espaces aux données séparées. Codé et testé en local.
+- **15 octobre 2026** : edvantis.coachingfederation.ma en place (DNS + alias + https). Reste : mise à jour du site + création de l'espace ICF (SSH), puis déménagement des coachs.
