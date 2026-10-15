@@ -89,6 +89,9 @@ export default function Home() {
         <div className="page-header">
           <span className="brand">Live</span>
           <h1>Mes présentations</h1>
+          <button className="btn" onClick={() => nav('/historique')}>
+            📊 Historique
+          </button>
           <div className="grow" />
           <form
             className="row"

@@ -32,10 +32,13 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : un code, plusieurs sites. `<données>/instance.json` (publicUrl, addinId, addinName, adminKey), `--data`, manifeste et installateurs générés par le serveur, PowerPoint téléchargé avec le module du site, export/import de présentations. Testé en local avec deux sites. Sur le site de Dan, sans instance.json, tout reste identique (même module).
 - [x] 14/10 : option A, un seul module PowerPoint pour tous les sites : le module lit l'adresse de la diapo et parle au site correspondant (`setApiBase` dans `src/backend/http.ts`, `BASE` dans `legacy.js`), le serveur accepte ces appels entre sites (CORS sur /api, sans cookies). Testé en local, deux sites : page du module servie par le site de Dan, diapo et salle du site ICF, dans Chrome et dans le moteur IE11 (affichage, QR code, et la salle suit la diapo).
 - [x] 14/10 : espaces sur un seul serveur (`createSpace` dans `server/index.js`) : l'adresse appelée choisit l'espace, chacun avec ses données (`<données>/espaces/<nom>/`). Testé en local : données séparées, déménagement des 3 coachs vers l'espace ICF, diapo ICF affichée par le module servi depuis l'adresse principale, page coach sur l'adresse ICF, espace principal inchangé.
+- [x] 15/10 : page **Historique** (`/historique`, `src/pages/History.tsx`) : liste des conférences par présentation (date, code, inscrits, réponses, questions jouées ; essais < 5 inscrits masquables), export Excel des conférences cochées (`src/lib/historyExcel.ts`, ExcelJS : Synthèse, Résultats, Mots, Participants, formules). Accès : propriétaire (bouton sur « Mes présentations »), coach (lien sur sa page), tout un espace avec `?admin=<adminKey>` (lien ICF donné à Dan). Testé en local avec les vraies données ICF : 333 formules, 0 erreur dans Excel, chiffres identiques à la synthèse manuelle.
 - [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
+
+**À mettre en ligne (hors conférence)** : page Historique avec export Excel. git pull + Build + Run (le Build installe exceljs).
 
 **Espace ICF (décidé le 14/10 : un seul site Node.js chez Infomaniak — l'offre n'en permet qu'un —, deux espaces aux données séparées)** — dans l'ordre :
 1. ✅ 15/10 : sous-domaine **edvantis.coachingfederation.ma** créé par le webmaster d'ICF (DNS chez Hostinger, CNAME vers sondage.baratextile.com).
@@ -141,3 +144,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **15 octobre 2026** : espace ICF en ligne sur edvantis.coachingfederation.ma, 3 coachs déménagés. Les anciens fichiers PowerPoint des coachs ne marchent plus : chacune retélécharge depuis son nouveau lien.
 - **15 octobre 2026** : accueil réservé aux participants (saisie du code), espace animateur sur /presentations. Poussé, à déployer.
 - **15 octobre 2026** : accueil participants en ligne, confirmé par Dan (« tout fonctionne »).
+- **15 octobre 2026** : page Historique + export Excel codée et testée. Poussé, à déployer.

@@ -382,6 +382,54 @@ function createSpace(DATA_DIR) {
     res.json(coachView(p))
   })
 
+  // ---------- Historique des conférences ----------
+  // Toutes les salles d'une présentation : code actuel, anciens codes (« Nouvelle conférence »)
+  // et archives « code~date » (salle repartie à zéro).
+  function roomsOf(p) {
+    const codes = new Set([p.code, ...(p.history ?? []).map((h) => h.code)])
+    return Object.keys(db.sessions).filter((k) => codes.has(k.split('~')[0]) && (!db.sessions[k].presId || db.sessions[k].presId === p.id))
+  }
+  function roomSummary(k) {
+    const s = db.sessions[k]
+    const people = Object.values(db.participants[k] ?? {})
+    const answers = Object.values(db.answers[k] ?? {})
+    const times = people.map((x) => x.joinedAt).concat(answers.map((a) => a.at)).filter(Boolean)
+    return {
+      room: k,
+      code: k.split('~')[0],
+      start: times.length ? Math.min(...times) : s.createdAt,
+      end: times.length ? Math.max(...times) : s.createdAt,
+      participants: people.length,
+      answers: answers.length,
+      played: new Set(answers.map((a) => a.itemId)).size,
+      total: (s.items ?? []).length,
+    }
+  }
+  // Droits : la clé d'administration de l'espace (tout l'espace), le propriétaire (ses présentations),
+  // ou un lien coach (sa présentation).
+  r.get('/api/history', (req, res) => {
+    const admin = !!INSTANCE.adminKey && req.get('x-admin') === INSTANCE.adminKey
+    const uid = uidOf(req)
+    const coachId = String(req.query.coach || '')
+    const key = req.get('x-key')
+    const visible = Object.values(db.presentations).filter((p) =>
+      admin ? true : coachId ? p.id === coachId && !!p.coachKey && key === p.coachKey : !!uid && p.ownerId === uid,
+    )
+    if (!admin && coachId && !visible.length) return res.status(404).json({ error: 'Lien invalide' })
+    res.set('Cache-Control', 'no-store').json(
+      visible
+        .map((p) => ({
+          id: p.id,
+          title: p.title,
+          coach: p.coach ?? '',
+          conferences: roomsOf(p)
+            .map(roomSummary)
+            .sort((a, b) => b.start - a.start),
+        }))
+        .sort((a, b) => (b.conferences[0]?.start ?? 0) - (a.conferences[0]?.start ?? 0)),
+    )
+  })
+
   // ---------- Déménagement d'une présentation vers un autre site (ex. du site de Dan vers celui d'ICF) ----------
   // Export : la présentation complète (clés comprises), son fichier PowerPoint et toutes ses salles
   // (code actuel, anciens codes, archives « code~date »), avec participants, réponses et questions.

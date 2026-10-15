@@ -1046,3 +1046,33 @@ details.card summary {
 .coach .ok {
   color: #34d399;
 }
+
+/* Historique */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.history-table th {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.history-table tr {
+  cursor: pointer;
+}
+.history-table tr.on td {
+  background: rgba(124, 58, 237, 0.08);
+}
+@media (max-width: 640px) {
+  .history-table th:nth-child(6),
+  .history-table td:nth-child(6) {
+    display: none;
+  }
+}

@@ -9,6 +9,7 @@ import Addin from './pages/Addin'
 import Coach from './pages/Coach'
 import CoachPresenter from './pages/CoachPresenter'
 import Adopt from './pages/Adopt'
+import History from './pages/History'
 import Join from './pages/Join'
 import Participant from './pages/Participant'
 
@@ -18,6 +19,7 @@ export default function App() {
       {/* page d'accueil = saisie du code (participants) ; l'espace animateur est à part */}
       <Route path="/" element={<Join />} />
       <Route path="/presentations" element={<Home />} />
+      <Route path="/historique" element={<History />} />
       <Route path="/edit/:id" element={<Editor />} />
       <Route path="/host/:code" element={<Host />} />
       <Route path="/screen/:code" element={<Screen />} />

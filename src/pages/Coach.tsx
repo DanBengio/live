@@ -110,6 +110,9 @@ export default function Coach() {
           </p>
         )}
         {error && <p className="error">⚠️ {error}</p>}
+        <p style={{ marginTop: 10 }}>
+          <a href={`/historique?coach=${pres.id}&k=${encodeURIComponent(key)}`}>📊 Historique et résultats de mes conférences (export Excel)</a>
+        </p>
       </div>
 
       <div className="card">
