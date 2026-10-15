@@ -41,7 +41,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 1. ✅ 15/10 : sous-domaine **edvantis.coachingfederation.ma** créé par le webmaster d'ICF (DNS chez Hostinger, CNAME vers sondage.baratextile.com).
 2. ✅ 15/10 : ajouté comme alias du site Infomaniak (sans www ni mise à jour DNS), certificat Let's Encrypt mis à jour (⋮ → « Mettre à jour le certificat ») : https fonctionne.
 3. Dan met à jour le site (git pull, Build, Run), puis colle dans la console SSH la commande de Claude qui crée `server/data/espaces/icf/instance.json` (hosts = sous-domaine, publicUrl = https://sous-domaine, adminKey préparée dans `sauvegardes/2026-10-14/prive/instance-icf.json`), puis Run.
-4. Claude déménage les 3 présentations coachs (Mona, Sakina, Bahaâ) vers l'espace ICF avec `scripts/demenager-presentation.cjs <site> https://<sous-domaine> <adminKey> liste.json --supprimer`, hors conférence, et donne les nouveaux liens coach.
+4. ✅ 15/10 : espace ICF créé (server/data/espaces/icf) et 3 présentations coachs déménagées vers l'espace ICF, résultats compris (Mona 3 salles / 61 participants / 514 réponses, Bahaâ 4 salles / 48 / 393, Sakina vide). Liens coach (même clé, adresse edvantis) donnés à Dan dans la conversation, dans `sauvegardes/2026-10-14/prive/migration-icf-resultat.txt`. **Reste : Dan supprime « … · Mona » de « Mes présentations » sur sondage.baratextile.com** (il l'avait adoptée, Claude ne peut pas la supprimer). Commande utilisée : avec `scripts/demenager-presentation.cjs <site> https://<sous-domaine> <adminKey> liste.json --supprimer`, hors conférence, et donne les nouveaux liens coach.
 5. Chaque coach : rien à installer (même module Live), juste télécharger sa présentation depuis sa nouvelle page coach.
 
 **Dan (sauvegarde)** : console SSH du site actuel : `cd ~/sites/sondage.baratextile.com && tar czf ~/sauvegarde-live-2026-10-14.tar.gz server/data`.
@@ -136,3 +136,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **14 octobre 2026, nuit** : option A retenue (les coachs gardent le module Live). Module multi-sites codé et testé en local.
 - **14 octobre 2026, nuit** : l'offre Infomaniak ne permet qu'un site Node.js : option B, un seul site avec deux espaces aux données séparées. Codé et testé en local.
 - **15 octobre 2026** : edvantis.coachingfederation.ma en place (DNS + alias + https). Reste : mise à jour du site + création de l'espace ICF (SSH), puis déménagement des coachs.
+- **15 octobre 2026** : espace ICF en ligne sur edvantis.coachingfederation.ma, 3 coachs déménagés. Les anciens fichiers PowerPoint des coachs ne marchent plus : chacune retélécharge depuis son nouveau lien.
