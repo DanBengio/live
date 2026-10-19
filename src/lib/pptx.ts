@@ -106,6 +106,7 @@ async function qrSnapshot(code: string, origin: string, theme: Theme | undefined
   g.fillStyle = '#' + (theme?.qrBg ?? 'ffffff')
   g.fillRect(0, 0, w, h)
   const img = new Image()
+  img.crossOrigin = 'anonymous' // image d'un autre site (module multi-sites) : sinon la toile ne s'exporte pas
   img.src = `${origin}/api/qr.svg?code=${code}&fg=${theme?.qrFg ?? '0b1020'}&bg=${theme?.qrBg ?? 'ffffff'}`
   await img.decode()
   const side = Math.min(w, h) * 0.84

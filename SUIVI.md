@@ -39,7 +39,7 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 
 ## Prochaine action
 
-**Dan (Du pompier au visionnaire)** : 1) mettre le site à jour (git pull, Build, Run) ; 2) rouvrir le lien « adopter » (il a été repris par Claude le 20/10 pour les réglages) ; 3) « Télécharger mon PowerPoint avec Live », puis diaporama : diapo 1 = QR dans le carré, diapo 2 = nuage de mots. La diapo 19 (consignes, cachée) est encore dans le fichier.
+**Dan (Du pompier au visionnaire)** : site à jour le 20/10 (vérifié : nouvelle version sur les deux adresses, présentations ICF intactes). Reste : télécharger son PowerPoint, diaporama de contrôle (diapo 1 = QR dans le carré, la salle passe au nuage de mots ; diapo 2 = nuage), puis « Nouvel atelier : remettre à zéro » avant l'atelier (réponses de test dans la salle). La diapo 19 (consignes, cachée) est encore dans le fichier.
 
 **À mettre en ligne (hors conférence)** : page Historique avec export Excel. git pull + Build + Run (le Build installe exceljs).
 
@@ -150,3 +150,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **15 octobre 2026** : page Historique + export Excel codée et testée. Poussé, à déployer.
 - **19 octobre 2026** : nouvelle présentation « Du pompier au visionnaire » (code 627203) créée en ligne avec son PowerPoint et 3 questions. Aucun changement de code.
 - **20 octobre 2026** : « Du pompier au visionnaire » : diapo 1 d'origine gardée (module QR seul), charte MetaBlob propre à cette présentation. Testé en local, poussé, à déployer.
+- **20 octobre 2026** : mise à jour en ligne faite par Dan, vérifiée (QR couleurs, thème, ICF intact). Fichier généré depuis les vrais réglages : 20 diapos, modules aux bons endroits. Test diaporama de Claude perturbé (Dan utilisait PowerPoint en même temps) : à confirmer par Dan. Petit correctif d'aperçu QR entre sites (crossOrigin), poussé, sans urgence.
