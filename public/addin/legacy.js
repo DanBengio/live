@@ -63,7 +63,7 @@
   })()
   function parse(url) {
     var m = /\/ppt\/(\d{6})\/([\w-]+)\?(?:.*&)?k=([^&#]+)/.exec(String(url || ''))
-    return m ? { code: m[1], slide: m[2], key: decodeURIComponent(m[3]) } : null
+    return m ? { code: m[1], slide: m[2], key: decodeURIComponent(m[3]), qr: /[?&]vue=qr(&|#|$)/.test(String(url)) } : null
   }
   function api(method, url, body, cb) {
     var x = new XMLHttpRequest()
@@ -202,6 +202,14 @@
       return paint('<div class="center muted">Live…</div>')
     }
     var s = slideView(session)
+    // module « QR code seul » : la salle passe à l'activité, l'écran ne montre que le QR code
+    if (target.qr) {
+      var col = session.theme === 'metablob' ? '&fg=1C1E1B&bg=F5F1EE' : ''
+      return paint(
+        '<div style="position:absolute;left:0;top:0;width:100%;height:100%;text-align:center;background:#' + (col ? 'F5F1EE' : 'ffffff') + '">' +
+          '<img src="' + BASE + '/api/qr.svg?code=' + target.code + col + '" alt="QR code" style="height:96%;margin-top:1%" /></div>'
+      )
+    }
     if (s.status === 'lobby') {
       var names = ''
       var shown = participants.slice(-24)

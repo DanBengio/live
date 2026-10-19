@@ -148,7 +148,9 @@ function createSpace(DATA_DIR) {
   r.get('/api/qr.svg', (req, res) => {
     const code = String(req.query.code || '')
     if (!/^\d{6}$/.test(code)) return res.status(400).end()
-    const svg = renderToStaticMarkup(createElement(QRCodeSVG, { value: `${publicUrlFor(req)}/join/${code}`, size: 600, level: 'M', bgColor: '#ffffff', fgColor: '#0b1020' }))
+    // couleurs facultatives (?fg=1C1E1B&bg=F5F1EE), pour les présentations à charte graphique
+    const hex = (v, d) => (/^[0-9a-f]{6}$/i.test(String(v || '')) ? `#${v}` : d)
+    const svg = renderToStaticMarkup(createElement(QRCodeSVG, { value: `${publicUrlFor(req)}/join/${code}`, size: 600, level: 'M', bgColor: hex(req.query.bg, '#ffffff'), fgColor: hex(req.query.fg, '#0b1020') }))
     res.set('Cache-Control', 'public, max-age=86400').type('image/svg+xml').send(svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '))
   })
   r.get('/api/info', (req, res) => res.json({ name: 'node', publicUrl: publicUrlFor(req), pollMs: 1000, addinId: ADDIN_ID }))
@@ -278,6 +280,7 @@ function createSpace(DATA_DIR) {
       codeAt: existing?.codeAt,
       history: existing?.history,
       placements: p.placements && typeof p.placements === 'object' ? p.placements : existing?.placements,
+      theme: 'theme' in p ? p.theme : existing?.theme,
     })
     save()
     res.json(db.presentations[p.id])
@@ -558,7 +561,7 @@ function createSpace(DATA_DIR) {
       db.questions[code] = {}
     }
     // toujours les dernières questions de la présentation (les réponses sont rangées par activité)
-    Object.assign(s, { title: pres.title, items: pres.items, hostId: pres.ownerId, screenKey: pres.slideKey })
+    Object.assign(s, { title: pres.title, items: pres.items, hostId: pres.ownerId, screenKey: pres.slideKey, theme: pres.theme })
     save()
     res.json({ code })
   })

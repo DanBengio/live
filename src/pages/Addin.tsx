@@ -178,8 +178,8 @@ export default function Addin() {
 
   return (
     <>
-      <PptView code={parsed.code} slide={parsed.slide} slideKey={parsed.slideKey} live={current} />
-      {view === 'edit' && (
+      <PptView code={parsed.code} slide={parsed.slide} slideKey={parsed.slideKey} live={current} view={parsed.view} />
+      {view === 'edit' && !parsed.view && (
         <div className="addin-edit">
           <span>Aperçu · la salle passera à cette activité en diaporama</span>
           <button

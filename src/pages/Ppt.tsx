@@ -13,11 +13,11 @@ import Host from './Host'
 export default function Ppt() {
   const { code, slide } = useParams()
   const [params] = useSearchParams()
-  return <PptView code={code} slide={slide} slideKey={params.get('k') ?? ''} />
+  return <PptView code={code} slide={slide} slideKey={params.get('k') ?? ''} view={params.get('vue') === 'qr' ? 'qr' : undefined} />
 }
 
 /** Utilisé par la page web /ppt/... et par le module PowerPoint (avec `live`) */
-export function PptView({ code, slide, slideKey, live }: { code?: string; slide?: string; slideKey: string; live?: boolean }) {
+export function PptView({ code, slide, slideKey, live, view }: { code?: string; slide?: string; slideKey: string; live?: boolean; view?: 'qr' }) {
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
@@ -36,16 +36,16 @@ export function PptView({ code, slide, slideKey, live }: { code?: string; slide?
         <p>Diapo introuvable : vérifiez l’adresse copiée depuis la page PowerPoint du site.</p>
       </div>
     )
-  return <Host code={code} slide={slide} live={live} />
+  return <Host code={code} slide={slide} live={live} view={view} />
 }
 
 /** Découpe une adresse de diapo copiée depuis la page PowerPoint du site */
-export function parseSlideUrl(text: string): { code: string; slide: string; slideKey: string } | null {
+export function parseSlideUrl(text: string): { code: string; slide: string; slideKey: string; view?: 'qr' } | null {
   try {
     const u = new URL(text.trim())
     const m = /^\/ppt\/(\d{6})\/([\w-]+)$/.exec(u.pathname)
     const k = u.searchParams.get('k')
-    return m && k ? { code: m[1], slide: m[2], slideKey: k } : null
+    return m && k ? { code: m[1], slide: m[2], slideKey: k, view: u.searchParams.get('vue') === 'qr' ? 'qr' : undefined } : null
   } catch {
     return null
   }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { backend } from '../backend'
 import { ITEM_ICONS } from '../lib/items'
-import { buildPptx, liveSlides, readDeckSlides, saveFile } from '../lib/pptx'
+import { buildPptx, liveSlides, readDeckSlides, saveFile, type LiveSlide } from '../lib/pptx'
 import { coachLink } from '../lib/coach'
 import type { Placement, Presentation } from '../types'
 
@@ -95,7 +95,7 @@ export default function PptLinks() {
 
   const list = liveSlides(pres, location.host)
   const placements = pres.placements ?? {}
-  const unplaced = pres.deck ? list.filter((s) => !placements[s.slide] && s.slide !== 'fin').length : 0
+  const unplaced = pres.deck ? list.filter((s) => !placements[s.key] && s.slide !== 'fin').length : 0
 
   const run = async (label: string, fn: () => Promise<void>) => {
     setBusy(label)
@@ -129,14 +129,14 @@ export default function PptLinks() {
       saveFile(blob, `${base.replace(/[\\/:*?"<>|]/g, '-')} - LIVE ${pres.code}.pptx`)
     })
 
-  const url = (slide: string) => `${location.origin}/ppt/${pres.code}/${slide}?k=${pres.slideKey}`
-  const copy = async (slide: string) => {
+  const url = (r: LiveSlide) => `${location.origin}/ppt/${pres.code}/${r.slide}?k=${pres.slideKey}${r.view === 'qr' ? '&vue=qr' : ''}`
+  const copy = async (r: LiveSlide) => {
     try {
-      await navigator.clipboard.writeText(url(slide))
-      setCopied(slide)
-      setTimeout(() => setCopied((c) => (c === slide ? null : c)), 2000)
+      await navigator.clipboard.writeText(url(r))
+      setCopied(r.key)
+      setTimeout(() => setCopied((c) => (c === r.key ? null : c)), 2000)
     } catch {
-      prompt('Copiez cette adresse :', url(slide))
+      prompt('Copiez cette adresse :', url(r))
     }
   }
 
@@ -224,10 +224,10 @@ export default function PptLinks() {
           ) : (
             <div className="placements">
               {list.map((s) => {
-                const p = placements[s.slide] ?? null
+                const p = placements[s.key] ?? null
                 const mode = p?.mode ?? 'none'
                 return (
-                  <div className={'placement' + (p ? '' : ' unset')} key={s.slide}>
+                  <div className={'placement' + (p ? '' : ' unset')} key={s.key}>
                     <div className="what">
                       <span className="muted">
                         {icon(s.slide)} {s.label}
@@ -239,8 +239,8 @@ export default function PptLinks() {
                       value={mode}
                       onChange={(e) => {
                         const m = e.target.value
-                        if (m === 'none') setPlace(s.slide, null)
-                        else setPlace(s.slide, { mode: m as Placement['mode'], at: p?.at ?? (m === 'after' ? deckSlides.length : 1) })
+                        if (m === 'none') setPlace(s.key, null)
+                        else setPlace(s.key, { ...p, mode: m as Placement['mode'], at: p?.at ?? (m === 'after' ? deckSlides.length : 1) })
                       }}
                     >
                       <option value="none">Pas dans le PowerPoint</option>
@@ -248,7 +248,7 @@ export default function PptLinks() {
                       <option value="after">Après la diapo</option>
                     </select>
                     {p && (
-                      <select className="input" value={p.at} onChange={(e) => setPlace(s.slide, { ...p, at: Number(e.target.value) })}>
+                      <select className="input" value={p.at} onChange={(e) => setPlace(s.key, { ...p, at: Number(e.target.value) })}>
                         {p.mode === 'after' && <option value={0}>— au tout début</option>}
                         {deckSlides.map((t, i) => (
                           <option key={i} value={i + 1}>
@@ -309,13 +309,13 @@ export default function PptLinks() {
         </summary>
         <div className="ppt-links">
           {list.map((r) => (
-            <div className="ppt-link" key={r.slide}>
+            <div className="ppt-link" key={r.key}>
               <span className="label">
                 {icon(r.slide)} {r.label}
               </span>
               <span className="title muted">{r.title}</span>
-              <button className={'btn' + (copied === r.slide ? ' btn-primary' : '')} onClick={() => copy(r.slide)}>
-                {copied === r.slide ? '✓ Copiée' : 'Copier l’adresse'}
+              <button className={'btn' + (copied === r.key ? ' btn-primary' : '')} onClick={() => copy(r)}>
+                {copied === r.key ? '✓ Copiée' : 'Copier l’adresse'}
               </button>
             </div>
           ))}

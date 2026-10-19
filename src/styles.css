@@ -1076,3 +1076,112 @@ details.card summary {
     display: none;
   }
 }
+
+/* ---------- Module « QR code seul » (posé sur une diapo de l'animateur) ---------- */
+.qr-only {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-only svg {
+  /* marge claire autour du code : indispensable pour que les téléphones le lisent */
+  width: 84vmin;
+  height: 84vmin;
+}
+
+/* ---------- Charte MetaBlob (présentation « Du pompier au visionnaire ») ---------- */
+.stage.theme-metablob {
+  --fg: #f5f1ee;
+  --muted: #d6d2cc;
+  --border: rgba(245, 241, 238, 0.25);
+  --card: rgba(245, 241, 238, 0.1);
+  --ok: #b2970f;
+  --c0: #b2970f;
+  --c1: #f5f1ee;
+  --c2: #d6d2cc;
+  --c3: #e3c94a;
+  --c4: #8fb8b5;
+  --c5: #bfbebe;
+  --c6: #d9c37a;
+  --c7: #ffffff;
+  background: #155456;
+  color: var(--fg);
+  font-family: 'Quicksand', system-ui, sans-serif;
+  padding: 40px 85px 32px;
+}
+.stage.theme-metablob .stage-header h1 {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 50px;
+  letter-spacing: 0;
+}
+/* filet doré sous le titre, comme dans le deck */
+.stage.theme-metablob .stage-header h1::after {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 3px;
+  margin-top: 18px;
+  background: #b2970f;
+}
+.stage.theme-metablob .stage-footer {
+  font-size: 18px;
+}
+.stage.theme-metablob .join-badge {
+  background: rgba(245, 241, 238, 0.08);
+}
+.stage.theme-metablob .join-badge svg {
+  background: #f5f1ee;
+}
+.stage.theme-metablob .lobby .how .code {
+  background: none;
+  color: #b2970f;
+}
+.stage.theme-metablob .lobby .qr {
+  background: #f5f1ee;
+  border-radius: 0;
+}
+.stage.theme-metablob .bar-label {
+  font-weight: 500;
+}
+.stage.theme-metablob .bar-track {
+  background: rgba(245, 241, 238, 0.12);
+  border-radius: 0;
+}
+.stage.theme-metablob .bar-fill,
+.stage.theme-metablob .bar-label .swatch {
+  border-radius: 0;
+}
+.stage.theme-metablob .cloud text {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 500;
+}
+/* téléphones des participants */
+body.theme-metablob {
+  --bg: #155456;
+  --bg2: #124749;
+  --card: rgba(245, 241, 238, 0.1);
+  --card2: rgba(245, 241, 238, 0.16);
+  --border: rgba(245, 241, 238, 0.25);
+  --fg: #f5f1ee;
+  --muted: #d6d2cc;
+  --accent: #b2970f;
+  --accent-hover: #9a830d;
+  --accent2: #e3c94a;
+  --c0: #b2970f;
+  --c1: #8fb8b5;
+  --c2: #d6d2cc;
+  --c3: #e3c94a;
+  --c4: #5f6563;
+  --c5: #bfbebe;
+  --c6: #d9c37a;
+  --c7: #3f4a4a;
+  background: #155456;
+  font-family: 'Quicksand', system-ui, sans-serif;
+}
+body.theme-metablob .phone h2 {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 500;
+}

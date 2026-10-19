@@ -9,6 +9,7 @@
  * si le module n'est pas installé. Format XML repris d'un fichier enregistré par PowerPoint lui-même.
  */
 import type { Item, Placement, Presentation } from '../types'
+import { themeOf, type Theme } from './themes'
 
 /** Module PowerPoint du site en cours (chaque site a le sien : Dan, ICF…) */
 const DEFAULT_ADDIN_ID = '84c365e6-a511-440e-8849-ace119baf7eb'
@@ -26,6 +27,10 @@ type Zip = any
 
 export interface LiveSlide {
   slide: string // 'accueil' | 'fin' | identifiant d'activité
+  /** Clé de l'emplacement dans `placements` (= slide, ou 'qr:<activité>' pour un QR code seul) */
+  key: string
+  /** 'qr' : le module n'affiche que le QR code, mais met la salle sur l'activité */
+  view?: 'qr'
   label: string
   title: string
   lines: string[]
@@ -41,10 +46,18 @@ export function liveSlides(pres: Presentation, host: string): LiveSlide[] {
     if (it.type === 'wordcloud') return ['Répondez en quelques mots sur votre téléphone']
     return [it.prompt]
   }
+  // QR code seul sur une diapo de l'animateur (ex. « pendant que vous vous installez ») : seulement
+  // si un tel emplacement existe, pour ne rien changer aux autres présentations
+  const qrOnly = pres.items.flatMap((it, i) =>
+    pres.placements?.[`qr:${it.id}`]
+      ? [{ slide: it.id, key: `qr:${it.id}`, view: 'qr' as const, label: `QR code seul · ouvre l’activité ${i + 1}`, title: it.title, lines: [`Code : ${pres.code}`] }]
+      : [],
+  )
   return [
-    { slide: 'accueil', label: 'Accueil (QR code)', title: pres.title, lines: [`Rejoignez ${host}`, `Code : ${pres.code}`] },
-    ...pres.items.map((it, i) => ({ slide: it.id, label: `Activité ${i + 1}`, title: it.title, lines: describe(it) })),
-    { slide: 'fin', label: 'Fin (merci, classement)', title: 'Merci !', lines: [pres.title] },
+    { slide: 'accueil', key: 'accueil', label: 'Accueil (QR code)', title: pres.title, lines: [`Rejoignez ${host}`, `Code : ${pres.code}`] },
+    ...qrOnly,
+    ...pres.items.map((it, i) => ({ slide: it.id, key: it.id, label: `Activité ${i + 1}`, title: it.title, lines: describe(it) })),
+    { slide: 'fin', key: 'fin', label: 'Fin (merci, classement)', title: 'Merci !', lines: [pres.title] },
   ]
 }
 
@@ -84,15 +97,32 @@ export async function readDeckSlides(data: ArrayBuffer): Promise<string[]> {
   return out
 }
 
+/** Aperçu d'un module « QR code seul » : le vrai QR code (il marche même sans le module) */
+async function qrSnapshot(code: string, origin: string, theme: Theme | undefined, w: number, h: number): Promise<Uint8Array> {
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const g = c.getContext('2d')!
+  g.fillStyle = '#' + (theme?.qrBg ?? 'ffffff')
+  g.fillRect(0, 0, w, h)
+  const img = new Image()
+  img.src = `${origin}/api/qr.svg?code=${code}&fg=${theme?.qrFg ?? '0b1020'}&bg=${theme?.qrBg ?? 'ffffff'}`
+  await img.decode()
+  const side = Math.min(w, h) * 0.84
+  g.drawImage(img, (w - side) / 2, (h - side) / 2, side, side)
+  const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), 'image/png'))
+  return new Uint8Array(await blob.arrayBuffer())
+}
+
 /** Aperçu en image (sous le module) : la question écrite en clair sur fond sombre */
-async function snapshot(spec: LiveSlide, w: number, h: number): Promise<Uint8Array> {
+async function snapshot(spec: LiveSlide, w: number, h: number, theme?: Theme): Promise<Uint8Array> {
   const c = document.createElement('canvas')
   c.width = w
   c.height = h
   const g = c.getContext('2d')!
   const grad = g.createLinearGradient(0, 0, w, h)
-  grad.addColorStop(0, '#1e1b4b')
-  grad.addColorStop(1, '#0b1020')
+  grad.addColorStop(0, theme?.bg ?? '#1e1b4b')
+  grad.addColorStop(1, theme?.bg ?? '#0b1020')
   g.fillStyle = grad
   g.fillRect(0, 0, w, h)
   const u = w / 1280
@@ -111,24 +141,25 @@ async function snapshot(spec: LiveSlide, w: number, h: number): Promise<Uint8Arr
     return y + n * lh
   }
   const font = (px: number, bold = false) => `${bold ? 'bold ' : ''}${Math.round(px * u)}px system-ui, "Segoe UI", Arial, sans-serif`
-  g.fillStyle = '#ffffff'
+  g.fillStyle = theme?.fg ?? '#ffffff'
   g.font = font(52, true)
   let y = wrap(spec.title, 64 * u, 110 * u, w - 128 * u, 64 * u, 3) + 30 * u
-  g.fillStyle = '#cbd5e1'
+  g.fillStyle = theme?.muted ?? '#cbd5e1'
   g.font = font(30)
   for (const l of spec.lines.slice(0, 10)) {
     if (y > h - 70 * u) break
     y = wrap(l, 64 * u, y, w - 128 * u, 40 * u, 2) + 6 * u
   }
-  g.fillStyle = '#818cf8'
+  g.fillStyle = theme?.accent ?? '#818cf8'
   g.font = font(22, true)
   g.fillText('LIVE · affichage en direct avec le module PowerPoint Live', 64 * u, h - 36 * u)
   const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), 'image/jpeg', 0.85))
   return new Uint8Array(await blob.arrayBuffer())
 }
 
-function addinShape(shapeId: number, rWe: string, rImg: string, cx: number, cy: number): string {
-  const xfrm = `<a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/>`
+function addinShape(shapeId: number, rWe: string, rImg: string, cx: number, cy: number, box?: Placement['box']): string {
+  const b = box ?? { x: 0, y: 0, w: 1, h: 1 }
+  const xfrm = `<a:off x="${Math.round(b.x * cx)}" y="${Math.round(b.y * cy)}"/><a:ext cx="${Math.round(b.w * cx)}" cy="${Math.round(b.h * cy)}"/>`
   const nv = `<p:cNvPr id="${shapeId}" name="Live"/>`
   return (
     `<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice xmlns:we="http://schemas.microsoft.com/office/webextensions/webextension/2010/11" xmlns:pca="http://schemas.microsoft.com/office/powerpoint/2013/contentapp" Requires="we pca">` +
@@ -173,7 +204,7 @@ export async function buildPptx(pres: Presentation, origin: string, deck?: Array
   const list = liveSlides(pres, origin.replace(/^https?:\/\//, ''))
   const placed: { spec: LiveSlide; place: Placement; rank: number }[] = deck
     ? list.flatMap((spec, rank) => {
-        const place = pres.placements?.[spec.slide]
+        const place = pres.placements?.[spec.key]
         return place ? [{ spec, place, rank }] : []
       })
     : list.map((spec, rank) => ({ spec, place: { mode: 'cover' as const, at: rank + 1 }, rank }))
@@ -188,17 +219,25 @@ export async function buildPptx(pres: Presentation, origin: string, deck?: Array
   const order = await slideOrder(zip)
   let types = await read(zip, '[Content_Types].xml')
   if (!/Extension="jpeg"/i.test(types)) types = types.replace('<Default ', '<Default Extension="jpeg" ContentType="image/jpeg"/><Default ')
+  if (!/Extension="png"/i.test(types)) types = types.replace('<Default ', '<Default Extension="png" ContentType="image/png"/><Default ')
   const overrides: string[] = []
   const existingWe = Object.keys(zip.files).filter((f) => /^ppt\/webextensions\/webextension\d+\.xml$/.test(f)).length
   let n = 0
 
   // un module Live sur la diapo `file`
-  const putAddin = async (file: string, sldId: number, spec: LiveSlide) => {
+  const theme = themeOf(pres.theme)
+  const putAddin = async (file: string, sldId: number, spec: LiveSlide, box?: Placement['box']) => {
     n++
     const k = existingWe + n
-    const media = `ppt/media/live-${pres.code}-${n}.jpeg`
-    zip.file(media, await snapshot(spec, imgW, imgH))
-    const url = `${origin}/ppt/${pres.code}/${spec.slide}?k=${pres.slideKey}`
+    const qr = spec.view === 'qr'
+    const media = `ppt/media/live-${pres.code}-${n}.${qr ? 'png' : 'jpeg'}`
+    zip.file(
+      media,
+      qr
+        ? await qrSnapshot(pres.code!, origin, theme, Math.round(imgW * (box?.w ?? 1)), Math.round(imgH * (box?.h ?? 1)))
+        : await snapshot(spec, imgW, imgH, theme),
+    )
+    const url = `${origin}/ppt/${pres.code}/${spec.slide}?k=${pres.slideKey}${qr ? '&vue=qr' : ''}`
     zip.file(
       `ppt/webextensions/webextension${k}.xml`,
       `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<we:webextension xmlns:we="http://schemas.microsoft.com/office/webextensions/webextension/2010/11" id="{${crypto.randomUUID().toUpperCase()}}"><we:reference id="${ADDIN_ID}" version="1.0.0.0" store="developer" storeType="Registry"/><we:alternateReferences/><we:properties><we:property name="live" value="${xmlAttr(JSON.stringify({ url, slideId: sldId }))}"/></we:properties><we:bindings/><we:snapshot xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId1"/></we:webextension>`,
@@ -213,14 +252,14 @@ export async function buildPptx(pres: Presentation, origin: string, deck?: Array
     const rImg = await addRel(zip, relsName, 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image', `../media/${media.split('/').pop()}`)
     let x = await read(zip, file)
     const maxId = Math.max(1, ...[...x.matchAll(/<p:cNvPr id="(\d+)"/g)].map((m) => Number(m[1])))
-    x = x.replace(/<\/p:spTree>(?![\s\S]*<\/p:spTree>)/, addinShape(maxId + 1, rWe, rImg, cx, cy) + '</p:spTree>')
+    x = x.replace(/<\/p:spTree>(?![\s\S]*<\/p:spTree>)/, addinShape(maxId + 1, rWe, rImg, cx, cy, box) + '</p:spTree>')
     zip.file(file, x)
   }
 
   // 1. modules sur des diapos existantes
   for (const p of placed.filter((p) => p.place.mode === 'cover')) {
     const s = order[p.place.at - 1]
-    if (s) await putAddin(s.file, s.id, p.spec)
+    if (s) await putAddin(s.file, s.id, p.spec, p.place.box)
   }
 
   // 2. nouvelles diapos Live

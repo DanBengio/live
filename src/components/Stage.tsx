@@ -12,6 +12,7 @@ import { QAList } from './QAList'
 import { Timer } from './Timer'
 import { Qr, JoinBadge } from './Qr'
 import { colorAt } from './colors'
+import { loadThemeFonts, themeOf } from '../lib/themes'
 
 interface Props {
   session: Session
@@ -28,16 +29,20 @@ interface Props {
 export function Stage(props: Props) {
   const { session: s, participants, withBar } = props
   const item = s.status === 'active' ? s.items[s.currentIndex] : undefined
+  const theme = themeOf(s.theme)
+  if (theme) loadThemeFonts(s.theme)
+  const qrFg = theme && '#' + theme.qrFg
+  const qrBg = theme && '#' + theme.qrBg
 
   return (
-    <div className={'stage' + (withBar ? ' with-bar' : '')}>
-      {s.status === 'lobby' && <Lobby session={s} participants={participants} />}
+    <div className={'stage' + (withBar ? ' with-bar' : '') + (theme ? ` theme-${s.theme}` : '')}>
+      {s.status === 'lobby' && <Lobby session={s} participants={participants} fg={qrFg} bg={qrBg} />}
 
       {s.status === 'active' && item && (
         <>
           <div className="stage-header">
             <h1>{s.phase === 'leaderboard' ? '🏆 Classement' : item.title}</h1>
-            <JoinBadge code={s.code} />
+            <JoinBadge code={s.code} fg={qrFg} bg={qrBg} />
           </div>
           <div className="stage-body">
             {s.phase === 'leaderboard' ? <Leaderboard participants={participants} /> : <ItemView item={item} {...props} />}
@@ -67,7 +72,7 @@ export function Stage(props: Props) {
   )
 }
 
-function Lobby({ session: s, participants }: { session: Session; participants: Participant[] }) {
+function Lobby({ session: s, participants, fg, bg }: { session: Session; participants: Participant[]; fg?: string; bg?: string }) {
   const shown = participants.slice(-40)
   return (
     <>
@@ -103,7 +108,7 @@ function Lobby({ session: s, participants }: { session: Session; participants: P
           </div>
         </div>
         <div className="qr">
-          <Qr code={s.code} size={300} />
+          <Qr code={s.code} size={300} fg={fg} bg={bg} />
         </div>
       </div>
     </>

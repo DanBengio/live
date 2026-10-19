@@ -5,6 +5,8 @@ import { useAnswers, useNow, useParticipants, useQuestions, useSession, useUid }
 import { computeScores } from '../lib/scoring'
 import { Stage } from '../components/Stage'
 import { Fit } from '../components/Fit'
+import { Qr } from '../components/Qr'
+import { themeOf } from '../lib/themes'
 import type { Item, Question, Session } from '../types'
 
 interface Props {
@@ -18,6 +20,8 @@ interface Props {
   live?: boolean
   /** Animateur reconnu par la clé de la présentation (lien coach), pas par son navigateur */
   keyHost?: boolean
+  /** 'qr' : n'affiche que le QR code (petit module posé sur une diapo de l'animateur), la salle passe quand même à l'activité */
+  view?: 'qr'
 }
 
 export default function Host(props: Props) {
@@ -202,6 +206,18 @@ export default function Host(props: Props) {
         <Link to="/presentations">← Accueil</Link>
       </div>
     )
+
+  if (ppt && props.view === 'qr') {
+    // les téléphones ont la question, l'écran ne montre que le QR code (pas encore de résultats)
+    const theme = themeOf(session.theme)
+    const fg = theme ? '#' + theme.qrFg : '#0b1020'
+    const bg = theme ? '#' + theme.qrBg : '#ffffff'
+    return (
+      <div className="qr-only" style={{ background: bg }}>
+        <Qr code={session.code} size={1000} fg={fg} bg={bg} />
+      </div>
+    )
+  }
 
   if (ppt) {
     // en diapo, seul le déroulé du quiz se pilote ici ; « Suivant » appartient à PowerPoint

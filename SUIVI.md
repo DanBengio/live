@@ -1,6 +1,6 @@
 # Live — suivi du projet
 
-Dernière mise à jour : 19 octobre 2026.
+Dernière mise à jour : 20 octobre 2026.
 
 ## En une phrase
 
@@ -33,13 +33,13 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - [x] 14/10 : option A, un seul module PowerPoint pour tous les sites : le module lit l'adresse de la diapo et parle au site correspondant (`setApiBase` dans `src/backend/http.ts`, `BASE` dans `legacy.js`), le serveur accepte ces appels entre sites (CORS sur /api, sans cookies). Testé en local, deux sites : page du module servie par le site de Dan, diapo et salle du site ICF, dans Chrome et dans le moteur IE11 (affichage, QR code, et la salle suit la diapo).
 - [x] 14/10 : espaces sur un seul serveur (`createSpace` dans `server/index.js`) : l'adresse appelée choisit l'espace, chacun avec ses données (`<données>/espaces/<nom>/`). Testé en local : données séparées, déménagement des 3 coachs vers l'espace ICF, diapo ICF affichée par le module servi depuis l'adresse principale, page coach sur l'adresse ICF, espace principal inchangé.
 - [x] 15/10 : page **Historique** (`/historique`, `src/pages/History.tsx`) : liste des conférences par présentation (date, code, inscrits, réponses, questions jouées ; essais < 5 inscrits masquables), export Excel des conférences cochées (`src/lib/historyExcel.ts`, ExcelJS : Synthèse, Résultats, Mots, Participants, formules). Accès : propriétaire (bouton sur « Mes présentations »), coach (lien sur sa page), tout un espace avec `?admin=<adminKey>` (lien ICF donné à Dan). Testé en local avec les vraies données ICF : 333 formules, 0 erreur dans Excel, chiffres identiques à la synthèse manuelle.
-- [x] 19/10 : présentation « Du pompier au visionnaire » (Forum des Jeunes Dirigeants, 11h00) créée sur sondage.baratextile.com, code fixe **627203**, avec le PowerPoint de Dan (19 diapos). 3 questions : nuage de mots « Votre dernier feu, en deux mots » (nouvelle diapo après la 1), vote « Votre grade aujourd'hui ? » (recouvre la diapo 8), vote « Votre pompier, ce matin ? » (recouvre la diapo 15). L'accueil Live (titre + QR code) recouvre la diapo 1. Lien « adopter » donné dans la conversation (copie dans `sauvegardes/2026-10-14/prive/pompier-visionnaire.json`). Rien d'autre modifié.
+- [x] 19-20/10 : présentation « Du pompier au visionnaire » (Forum des Jeunes Dirigeants, 11h00) sur sondage.baratextile.com, code fixe **627203**, PowerPoint de Dan (19 diapos ; sur le serveur, « [URL du sondage 1] » remplacé par « Code de la salle : 627203 »). Diapo 1 gardée telle quelle : un **petit module « QR code seul »** posé pile sur le carré QR (placement `qr:<activité>` avec `box`, adresse `...?k=…&vue=qr`) : la salle passe au nuage de mots, les téléphones ont la question, l'écran ne montre que le QR. Diapo 2 (ajoutée) : résultats du nuage. Diapos 9 et 16 (ses 8 et 15) : votes « grade » et « pompier » recouverts par Live. **Charte MetaBlob** (`theme: 'metablob'`, `src/lib/themes.ts` + `.theme-metablob` dans styles.css : vert canard #155456, crème, or #B2970F, Jost/Quicksand) sur les écrans Live, les aperçus du PowerPoint et les téléphones. Les autres présentations n'ont ni thème ni QR seul : inchangées. Testé en local (écran, téléphone, fichier ouvert dans PowerPoint : 20 diapos, diapo 1 intacte avec vrai QR). Lien « adopter » dans la conversation (copie dans `sauvegardes/2026-10-14/prive/pompier-visionnaire.json`).
 - [ ] Nom et domaine de l'application à choisir (libres le 14/10 en .com et .fr : sallevive, echosalle, levelamain, levemain, vivasalle, voxsalle, agorasalle, ondesalle, mainhaute, sallium).
 - [ ] Suite possible, à décider avec Dan : export des résultats, connexion Google pour l'animateur, vrai module PowerPoint (option C, seulement si l'outil devient un produit).
 
 ## Prochaine action
 
-**Dan (Du pompier au visionnaire)** : ouvrir le lien « adopter » du 19/10, puis « Télécharger mon PowerPoint avec Live » et vérifier les diapos 1, 2, 9 et 16 en diaporama. La diapo 19 (consignes, cachée) est encore dans le fichier : à supprimer dans PowerPoint si besoin.
+**Dan (Du pompier au visionnaire)** : 1) mettre le site à jour (git pull, Build, Run) ; 2) rouvrir le lien « adopter » (il a été repris par Claude le 20/10 pour les réglages) ; 3) « Télécharger mon PowerPoint avec Live », puis diaporama : diapo 1 = QR dans le carré, diapo 2 = nuage de mots. La diapo 19 (consignes, cachée) est encore dans le fichier.
 
 **À mettre en ligne (hors conférence)** : page Historique avec export Excel. git pull + Build + Run (le Build installe exceljs).
 
@@ -149,3 +149,4 @@ Application type Vevox / AhaSlides pour les ateliers de Dan : une page projetée
 - **15 octobre 2026** : accueil participants en ligne, confirmé par Dan (« tout fonctionne »).
 - **15 octobre 2026** : page Historique + export Excel codée et testée. Poussé, à déployer.
 - **19 octobre 2026** : nouvelle présentation « Du pompier au visionnaire » (code 627203) créée en ligne avec son PowerPoint et 3 questions. Aucun changement de code.
+- **20 octobre 2026** : « Du pompier au visionnaire » : diapo 1 d'origine gardée (module QR seul), charte MetaBlob propre à cette présentation. Testé en local, poussé, à déployer.

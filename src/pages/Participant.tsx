@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { loadThemeFonts, themeOf } from '../lib/themes'
 import { useNavigate, useParams } from 'react-router-dom'
 import { backend } from '../backend'
 import { useNow, useParticipant, useQuestions, useSession, useUid } from '../hooks'
@@ -12,6 +13,14 @@ export default function Participant() {
   const nav = useNavigate()
   const uid = useUid()
   const session = useSession(code)
+  // charte graphique de la présentation sur le téléphone aussi (couleurs et polices)
+  const theme = session?.theme && themeOf(session.theme) ? session.theme : undefined
+  useEffect(() => {
+    if (!theme) return
+    loadThemeFonts(theme)
+    document.body.classList.add(`theme-${theme}`)
+    return () => document.body.classList.remove(`theme-${theme}`)
+  }, [theme])
   // Score et rang : utiles seulement au classement et à la fin (économise les requêtes)
   const needScore = !session || session.phase === 'leaderboard' || session.status === 'ended'
   const [known, setKnown] = useState(false)

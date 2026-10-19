@@ -58,11 +58,15 @@ export interface Presentation {
   /** Date du code actuel, et codes des conférences précédentes */
   codeAt?: number
   history?: { code: string; from: number; to: number }[]
+  /** Charte graphique des écrans Live (absent = thème habituel). Voir `.theme-<nom>` dans styles.css */
+  theme?: string
 }
 
 export interface Placement {
   mode: 'cover' | 'after'
   at: number
+  /** Cadre du module sur la diapo, en fractions de la diapo (absent = diapo entière) */
+  box?: { x: number; y: number; w: number; h: number }
 }
 
 export type SessionStatus = 'lobby' | 'active' | 'ended'
@@ -84,6 +88,8 @@ export interface Session {
   /** Identifiants des quiz déjà notés (évite de compter deux fois) */
   scoredItems: string[]
   createdAt: number
+  /** Charte graphique de la présentation (copiée à chaque ouverture de la salle) */
+  theme?: string
 }
 
 export interface Participant {
