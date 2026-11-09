@@ -292,9 +292,15 @@ function QuizForm({ item, onChange }: { item: QuizItem; onChange: (i: Item) => v
 
 function QAForm({ item, onChange }: { item: QAItem; onChange: (i: Item) => void }) {
   return (
-    <label className="field">
-      <span>Consigne affichée aux participants</span>
-      <textarea className="textarea" value={item.prompt} onChange={(e) => onChange({ ...item, prompt: e.target.value })} />
-    </label>
+    <>
+      <label className="field">
+        <span>Consigne affichée aux participants</span>
+        <textarea className="textarea" value={item.prompt} onChange={(e) => onChange({ ...item, prompt: e.target.value })} />
+      </label>
+      <label className="check">
+        <input type="checkbox" checked={!!item.phrases} onChange={(e) => onChange({ ...item, phrases: e.target.checked })} />
+        Phrases à compléter (anonymes, sans votes) au lieu de questions
+      </label>
+    </>
   )
 }

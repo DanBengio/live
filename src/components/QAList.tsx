@@ -6,25 +6,35 @@ interface Props {
   moderate?: boolean
   onToggleAnswered?: (q: Question) => void
   onToggleHidden?: (q: Question) => void
+  /** phrases à compléter : anonymes, sans votes */
+  phrases?: boolean
 }
 
-export function QAList({ questions, moderate, onToggleAnswered, onToggleHidden }: Props) {
+export function QAList({ questions, moderate, onToggleAnswered, onToggleHidden, phrases }: Props) {
   const visible = moderate ? questions : questions.filter((q) => !q.hidden)
   if (!visible.length) {
-    return <div className="waiting">Aucune question pour l'instant. Posez-les depuis votre téléphone !</div>
+    return (
+      <div className="waiting">
+        {phrases
+          ? 'Aucune phrase pour l’instant. Complète-la sur ton téléphone !'
+          : "Aucune question pour l'instant. Posez-les depuis votre téléphone !"}
+      </div>
+    )
   }
   return (
     <div className="qa-list">
       {visible.map((q) => (
         <div key={q.id} className={'qa-item' + (q.answered ? ' answered' : '') + (q.hidden ? ' hidden' : '')}>
-          <div className="votes">
-            {q.votes}
-            <small>vote{q.votes > 1 ? 's' : ''}</small>
-          </div>
+          {!phrases && (
+            <div className="votes">
+              {q.votes}
+              <small>vote{q.votes > 1 ? 's' : ''}</small>
+            </div>
+          )}
           <div className="text">
             {q.text}
             <div className="by">
-              {q.name}
+              {phrases ? '' : q.name}
               {q.answered && ' · répondu'}
               {q.hidden && ' · masquée'}
             </div>

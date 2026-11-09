@@ -265,7 +265,7 @@
       var shownQ = 0
       for (var q = 0; q < questions.length && shownQ < 8; q++) {
         if (questions[q].hidden) continue
-        body += '<div><b>▲ ' + questions[q].votes + '</b>' + esc(questions[q].text) + '</div>'
+        body += '<div>' + (item.phrases ? '' : '<b>▲ ' + questions[q].votes + '</b>') + esc(questions[q].text) + '</div>'
         shownQ++
       }
       body += '</div>'

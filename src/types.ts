@@ -31,6 +31,8 @@ export interface QuizItem extends BaseItem {
 export interface QAItem extends BaseItem {
   type: 'qa'
   prompt: string
+  /** Phrases à compléter : textes « phrase » au lieu de « question », sans votes ni noms */
+  phrases?: boolean
 }
 
 export type Item = PollItem | WordCloudItem | QuizItem | QAItem

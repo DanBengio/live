@@ -201,9 +201,9 @@ export function QAView({
     <>
       <p className="muted">{item.prompt}</p>
       <form className="stack" onSubmit={send}>
-        <textarea className="textarea" value={text} maxLength={280} placeholder="Votre question…" onChange={(e) => setText(e.target.value)} />
+        <textarea className="textarea" value={text} maxLength={280} placeholder={item.phrases ? 'Ta phrase…' : 'Votre question…'} onChange={(e) => setText(e.target.value)} />
         <button className="btn btn-primary" disabled={!text.trim() || busy}>
-          Envoyer ma question
+          {item.phrases ? 'Envoyer ma phrase' : 'Envoyer ma question'}
         </button>
       </form>
       <div className="stack">
@@ -213,13 +213,15 @@ export function QAView({
             className={'qa-item' + (q.pid === uid ? ' qa-mine' : '') + (q.answered ? ' answered' : '')}
             style={{ fontSize: '1rem', padding: '10px 12px' }}
           >
-            <button className={'vote-btn' + (q.voters.includes(uid) ? ' on' : '')} onClick={() => onVote(q.id)} disabled={q.pid === uid}>
-              ▲ {q.votes}
-            </button>
+            {!item.phrases && (
+              <button className={'vote-btn' + (q.voters.includes(uid) ? ' on' : '')} onClick={() => onVote(q.id)} disabled={q.pid === uid}>
+                ▲ {q.votes}
+              </button>
+            )}
             <div className="text">
               {q.text}
               <div className="by">
-                {q.pid === uid ? 'Vous' : q.name}
+                {q.pid === uid ? (item.phrases ? 'Ta phrase' : 'Vous') : item.phrases ? '' : q.name}
                 {q.answered && ' · répondu'}
               </div>
             </div>

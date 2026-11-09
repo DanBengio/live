@@ -170,7 +170,7 @@ function ItemView({ item, session: s, participants, answers, questions, now, mod
           <div className="big-count" style={{ marginBottom: 14 }}>
             {item.prompt}
           </div>
-          <QAList questions={questions} moderate={moderate} onToggleAnswered={onToggleAnswered} onToggleHidden={onToggleHidden} />
+          <QAList phrases={item.phrases} questions={questions} moderate={moderate} onToggleAnswered={onToggleAnswered} onToggleHidden={onToggleHidden} />
         </>
       )
   }
