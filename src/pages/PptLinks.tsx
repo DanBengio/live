@@ -3,88 +3,80 @@ import { Link, useParams } from 'react-router-dom'
 import { backend } from '../backend'
 import { ITEM_ICONS } from '../lib/items'
 import { buildPptx, liveSlides, readDeckSlides, saveFile, type LiveSlide } from '../lib/pptx'
-import { coachLink, teamLink } from '../lib/coach'
+import { coachesApi } from '../lib/coach'
 import type { Placement, Presentation } from '../types'
 
-/** Lien à envoyer au coach qui présente : nouveau code et téléchargement avant chaque conférence */
-function CoachLink({ pres }: { pres: Presentation }) {
-  const [name, setName] = useState(pres.coach ?? '')
-  const [link, setLink] = useState(
-    pres.coachKey ? `${location.origin}/coach/${pres.id}?k=${pres.coachKey}` : '',
-  )
-  const [copied, setCopied] = useState(false)
-  const create = async () => {
-    const uid = await backend.getUid()
-    setLink(await coachLink(pres.id, uid, name))
-  }
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      prompt('Copiez ce lien :', link)
-    }
-  }
-  return (
-    <div className="card">
-      <h3>Lien pour le coach</h3>
-      <p className="muted">
-        Le coach y prend un nouveau code avant chaque conférence et télécharge sa présentation complète. Sans compte.
-      </p>
-      <div className="row" style={{ flexWrap: 'wrap' }}>
-        <input className="input" style={{ maxWidth: 220 }} placeholder="Prénom du coach" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn" onClick={create}>
-          {link ? 'Mettre à jour le prénom' : 'Créer le lien'}
-        </button>
-      </div>
-      {link && (
-        <div className="row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-          <code style={{ wordBreak: 'break-all', fontSize: '0.8rem' }}>{link}</code>
-          <button className={'btn' + (copied ? ' btn-primary' : '')} onClick={copy}>
-            {copied ? '✓ Copié' : 'Copier le lien'}
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
+/**
+ * Liens des coachs : l'animateur tape le nom d'un coach et obtient son lien (sa propre copie de
+ * cette présentation : questions, PowerPoint, emplacements ; son code ; ses résultats à part).
+ */
+function CoachLinks({ pres }: { pres: Presentation }) {
+  type Row = { id: string; coach: string; coachKey: string; code?: string }
+  const [rows, setRows] = useState<Row[]>([])
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState('')
 
-/** Un seul lien pour plusieurs coachs : chacun tape son nom et reçoit sa propre copie (son code, sa page) */
-function TeamLink({ pres }: { pres: Presentation }) {
-  const [link, setLink] = useState(
-    pres.teamSlug ? `${location.origin}/${pres.teamSlug}` : pres.teamKey ? `${location.origin}/equipe/${pres.id}?k=${pres.teamKey}` : '',
-  )
-  const [copied, setCopied] = useState(false)
-  const create = async () => setLink(await teamLink(pres.id, await backend.getUid()))
-  const copy = async () => {
+  useEffect(() => {
+    backend.getUid().then((uid) => coachesApi.list(pres.id, uid)).then(setRows, () => setRows([]))
+  }, [pres.id])
+
+  // le coach déjà rattaché à cette présentation (ancien « Lien pour le coach ») reste listé
+  const all: Row[] = [...(pres.coachKey && pres.coach ? [{ id: pres.id, coach: pres.coach, coachKey: pres.coachKey, code: pres.code }] : []), ...rows]
+  const linkOf = (r: Row) => `${location.origin}/coach/${r.id}?k=${r.coachKey}`
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
     try {
-      await navigator.clipboard.writeText(link)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      prompt('Copiez ce lien :', link)
+      const r = await coachesApi.add(pres.id, await backend.getUid(), name)
+      setRows((list) => (list.some((x) => x.id === r.id) ? list : [...list, r]))
+      setName('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusy(false)
     }
   }
+  const copy = async (r: Row) => {
+    try {
+      await navigator.clipboard.writeText(linkOf(r))
+      setCopied(r.id)
+      setTimeout(() => setCopied(''), 2000)
+    } catch {
+      prompt('Copiez ce lien :', linkOf(r))
+    }
+  }
+
   return (
     <div className="card">
-      <h3>Lien commun pour plusieurs coachs</h3>
+      <h3>Liens des coachs</h3>
       <p className="muted">
-        Le même lien pour tous. Chaque coach tape son prénom et son nom, et reçoit sa propre copie de cette présentation (son code,
-        sa page coach). Ses conférences apparaissent dans l’Historique avec son nom. Préparez d’abord les questions et le
-        PowerPoint : les copies sont faites à la première visite de chaque coach.
+        Un lien par coach. Chaque coach a son propre code et ses résultats à part ; ses conférences apparaissent dans
+        l’Historique avec son nom. Préparez d’abord les questions et le PowerPoint : le coach reçoit la présentation telle
+        qu’elle est au moment où vous créez son lien.
       </p>
-      {link ? (
-        <div className="row" style={{ flexWrap: 'wrap' }}>
-          <code style={{ wordBreak: 'break-all', fontSize: '0.8rem' }}>{link}</code>
-          <button className={'btn' + (copied ? ' btn-primary' : '')} onClick={copy}>
-            {copied ? '✓ Copié' : 'Copier le lien'}
-          </button>
-        </div>
-      ) : (
-        <button className="btn" onClick={create}>
-          Créer le lien commun
+      <form className="row" style={{ flexWrap: 'wrap' }} onSubmit={add}>
+        <input className="input" style={{ maxWidth: 260 }} placeholder="Prénom et nom du coach" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="btn btn-primary" disabled={busy || name.trim().length < 2}>
+          {busy ? '…' : 'Créer son lien'}
         </button>
+      </form>
+      {error && <p className="error">⚠️ {error}</p>}
+      {all.length > 0 && (
+        <ul className="coach-links" style={{ listStyle: 'none', padding: 0, marginTop: 12 }}>
+          {all.map((r) => (
+            <li key={r.id} className="row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+              <b style={{ minWidth: 160 }}>{r.coach}</b>
+              <span className="muted">code {r.code}</span>
+              <button className={'btn btn-sm' + (copied === r.id ? ' btn-primary' : '')} onClick={() => copy(r)}>
+                {copied === r.id ? '✓ Copié' : 'Copier son lien'}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )
@@ -325,12 +317,7 @@ export default function PptLinks() {
       </div>
 
       {/* ---------- Lien coach ---------- */}
-      {pres.teamOf ? null : (
-        <>
-          <TeamLink pres={pres} />
-          <CoachLink pres={pres} />
-        </>
-      )}
+      {pres.teamOf ? null : <CoachLinks pres={pres} />}
 
       {/* ---------- Module ---------- */}
       <div className="card">

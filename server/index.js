@@ -442,6 +442,30 @@ function createSpace(DATA_DIR) {
     if (!p) return
     const name = str(req.body?.name, 60).replace(/\s+/g, ' ').trim()
     if (sameName(name).length < 3 || !/\s/.test(sameName(name))) return res.status(400).json({ error: 'Écrivez votre prénom et votre nom.' })
+    const copy = coachCopy(p, name)
+    res.json({ id: copy.id, coachKey: copy.coachKey, coach: copy.coach })
+  })
+  // Côté animateur : créer le lien d'un coach (sa copie) et lister les coachs d'une présentation
+  r.get('/api/presentations/:id/coaches', (req, res) => {
+    const p = ownPres(req, res)
+    if (!p) return
+    res.json(
+      Object.values(db.presentations)
+        .filter((x) => x.teamOf === p.id)
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .map((x) => ({ id: x.id, coach: x.coach, coachKey: x.coachKey, code: x.code })),
+    )
+  })
+  r.post('/api/presentations/:id/coaches', (req, res) => {
+    const p = ownPres(req, res)
+    if (!p) return
+    const name = str(req.body?.name, 60).replace(/\s+/g, ' ').trim()
+    if (sameName(name).length < 2) return res.status(400).json({ error: 'Écrivez le nom du coach.' })
+    const copy = coachCopy(p, name)
+    res.json({ id: copy.id, coach: copy.coach, coachKey: copy.coachKey, code: copy.code })
+  })
+  // la copie d'un coach (même nom, accents et majuscules ignorés = même copie)
+  function coachCopy(p, name) {
     let copy = Object.values(db.presentations).find((x) => x.teamOf === p.id && sameName(x.coach) === sameName(name))
     if (!copy) {
       const id = newId()
@@ -468,8 +492,8 @@ function createSpace(DATA_DIR) {
       db.presentations[id] = copy
       save()
     }
-    res.json({ id: copy.id, coachKey: copy.coachKey, coach: copy.coach })
-  })
+    return copy
+  }
 
   // ---------- Historique des conférences ----------
   // Toutes les salles d'une présentation : code actuel, anciens codes (« Nouvelle conférence »)

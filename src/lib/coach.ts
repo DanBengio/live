@@ -37,6 +37,25 @@ export const teamApi = {
   },
 }
 
+/** Côté animateur : les coachs d'une présentation (un lien par coach) */
+export const coachesApi = {
+  async list(id: string, uid: string): Promise<{ id: string; coach: string; coachKey: string; code?: string }[]> {
+    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/coaches`, { headers: { 'x-uid': uid }, cache: 'no-store' })
+    if (!r.ok) throw new Error(`${r.status}`)
+    return r.json()
+  },
+  async add(id: string, uid: string, name: string): Promise<{ id: string; coach: string; coachKey: string; code?: string }> {
+    const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/coaches`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-uid': uid },
+      body: JSON.stringify({ name }),
+    })
+    const body = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(body.error ?? `${r.status}`)
+    return body
+  },
+}
+
 /** Côté animateur : crée (ou retrouve) le lien d'équipe d'une présentation */
 export async function teamLink(id: string, uid: string): Promise<string> {
   const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/team`, { method: 'POST', headers: { 'x-uid': uid } })
