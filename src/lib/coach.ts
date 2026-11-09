@@ -18,6 +18,33 @@ export const coachApi = {
   newCode: (id: string, key: string) => req<Presentation>('POST', `${C(id)}/new-code`, key),
 }
 
+/** Lien d'équipe : un lien pour tous les coachs, chacun tape son nom et reçoit sa page coach */
+export const teamApi = {
+  async get(id: string, key: string): Promise<{ title: string }> {
+    const r = await fetch(`/api/team/${encodeURIComponent(id)}`, { headers: { 'x-key': key }, cache: 'no-store' })
+    if (!r.ok) throw new Error('Lien invalide')
+    return r.json()
+  },
+  async join(id: string, key: string, name: string): Promise<{ id: string; coachKey: string }> {
+    const r = await fetch(`/api/team/${encodeURIComponent(id)}/join`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-key': key },
+      body: JSON.stringify({ name }),
+    })
+    const body = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(body.error ?? `${r.status}`)
+    return body
+  },
+}
+
+/** Côté animateur : crée (ou retrouve) le lien d'équipe d'une présentation */
+export async function teamLink(id: string, uid: string): Promise<string> {
+  const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/team`, { method: 'POST', headers: { 'x-uid': uid } })
+  if (!r.ok) throw new Error(`${r.status}`)
+  const { teamKey } = await r.json()
+  return `${location.origin}/equipe/${id}?k=${teamKey}`
+}
+
 /** Côté animateur : crée (ou retrouve) le lien coach d'une présentation */
 export async function coachLink(id: string, uid: string, coach: string): Promise<string> {
   const r = await fetch(`/api/presentations/${encodeURIComponent(id)}/coach`, {

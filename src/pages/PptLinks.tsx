@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { backend } from '../backend'
 import { ITEM_ICONS } from '../lib/items'
 import { buildPptx, liveSlides, readDeckSlides, saveFile, type LiveSlide } from '../lib/pptx'
-import { coachLink } from '../lib/coach'
+import { coachLink, teamLink } from '../lib/coach'
 import type { Placement, Presentation } from '../types'
 
 /** Lien à envoyer au coach qui présente : nouveau code et téléchargement avant chaque conférence */
@@ -45,6 +45,44 @@ function CoachLink({ pres }: { pres: Presentation }) {
             {copied ? '✓ Copié' : 'Copier le lien'}
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+/** Un seul lien pour plusieurs coachs : chacun tape son nom et reçoit sa propre copie (son code, sa page) */
+function TeamLink({ pres }: { pres: Presentation }) {
+  const [link, setLink] = useState(pres.teamKey ? `${location.origin}/equipe/${pres.id}?k=${pres.teamKey}` : '')
+  const [copied, setCopied] = useState(false)
+  const create = async () => setLink(await teamLink(pres.id, await backend.getUid()))
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      prompt('Copiez ce lien :', link)
+    }
+  }
+  return (
+    <div className="card">
+      <h3>Lien commun pour plusieurs coachs</h3>
+      <p className="muted">
+        Le même lien pour tous. Chaque coach tape son prénom et son nom, et reçoit sa propre copie de cette présentation (son code,
+        sa page coach). Ses conférences apparaissent dans l’Historique avec son nom. Préparez d’abord les questions et le
+        PowerPoint : les copies sont faites à la première visite de chaque coach.
+      </p>
+      {link ? (
+        <div className="row" style={{ flexWrap: 'wrap' }}>
+          <code style={{ wordBreak: 'break-all', fontSize: '0.8rem' }}>{link}</code>
+          <button className={'btn' + (copied ? ' btn-primary' : '')} onClick={copy}>
+            {copied ? '✓ Copié' : 'Copier le lien'}
+          </button>
+        </div>
+      ) : (
+        <button className="btn" onClick={create}>
+          Créer le lien commun
+        </button>
       )}
     </div>
   )
@@ -285,7 +323,12 @@ export default function PptLinks() {
       </div>
 
       {/* ---------- Lien coach ---------- */}
-      <CoachLink pres={pres} />
+      {pres.teamOf ? null : (
+        <>
+          <TeamLink pres={pres} />
+          <CoachLink pres={pres} />
+        </>
+      )}
 
       {/* ---------- Module ---------- */}
       <div className="card">

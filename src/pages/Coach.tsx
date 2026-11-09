@@ -138,7 +138,11 @@ export default function Coach() {
           <li>À chaque diapo Live, les téléphones passent tout seuls à la question (5 à 10 secondes).</li>
           <li>Les participants peuvent rester en 4G si le Wi-Fi de la salle est chargé.</li>
         </ul>
-        <p className="muted" style={{ fontSize: '0.85rem' }}>Ne partagez pas ce lien : il prépare vos conférences.</p>
+        <p className="muted" style={{ fontSize: '0.85rem' }}>
+          {pres.teamOf
+            ? 'Ajoutez cette page à vos favoris. Sinon, rouvrez le lien commun et retapez votre prénom et votre nom.'
+            : 'Ne partagez pas ce lien : il prépare vos conférences.'}
+        </p>
       </div>
 
       <div className="card">

@@ -277,6 +277,8 @@ function createSpace(DATA_DIR) {
       deck: existing?.deck,
       coachKey: existing?.coachKey,
       coach: existing?.coach,
+      teamKey: existing?.teamKey,
+      teamOf: existing?.teamOf,
       codeAt: existing?.codeAt,
       history: existing?.history,
       placements: p.placements && typeof p.placements === 'object' ? p.placements : existing?.placements,
@@ -346,6 +348,7 @@ function createSpace(DATA_DIR) {
     id: p.id,
     title: p.title,
     coach: p.coach ?? '',
+    teamOf: p.teamOf,
     items: p.items,
     code: p.code,
     slideKey: p.slideKey,
@@ -383,6 +386,71 @@ function createSpace(DATA_DIR) {
     p.resetAt = 0
     save()
     res.json(coachView(p))
+  })
+
+  // ---------- Lien d'équipe ----------
+  // Un seul lien pour tous les coachs d'une présentation (/equipe/<id>?k=<teamKey>). Chaque coach tape
+  // son nom : il reçoit sa propre copie (questions, PowerPoint, emplacements, charte), avec son code
+  // et sa page coach. En retapant le même nom, il retrouve sa copie et ses conférences.
+  const newId = () => {
+    let id
+    do id = crypto.randomBytes(8).toString('base64url').replace(/[^a-z0-9]/gi, '').slice(0, 10).toLowerCase()
+    while (!id || db.presentations[id])
+    return id
+  }
+  const sameName = (s) =>
+    String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const teamPres = (req, res) => {
+    const p = db.presentations[req.params.id]
+    if (!p || !p.teamKey || req.get('x-key') !== p.teamKey) {
+      res.status(404).json({ error: 'Lien invalide' })
+      return null
+    }
+    return p
+  }
+  r.post('/api/presentations/:id/team', (req, res) => {
+    const p = ownPres(req, res)
+    if (!p) return
+    if (!p.teamKey) p.teamKey = newKey() + newKey()
+    save()
+    res.json({ teamKey: p.teamKey })
+  })
+  r.get('/api/team/:id', (req, res) => {
+    const p = teamPres(req, res)
+    if (p) res.json({ title: p.title })
+  })
+  r.post('/api/team/:id/join', (req, res) => {
+    const p = teamPres(req, res)
+    if (!p) return
+    const name = str(req.body?.name, 60).replace(/\s+/g, ' ').trim()
+    if (sameName(name).length < 3 || !/\s/.test(sameName(name))) return res.status(400).json({ error: 'Écrivez votre prénom et votre nom.' })
+    let copy = Object.values(db.presentations).find((x) => x.teamOf === p.id && sameName(x.coach) === sameName(name))
+    if (!copy) {
+      const id = newId()
+      const now = Date.now()
+      copy = ensureFixed({
+        id,
+        ownerId: p.ownerId, // l'animateur la voit dans « Mes présentations » et son historique
+        title: str(`${p.title} · ${name}`, 120),
+        items: structuredClone(p.items),
+        placements: structuredClone(p.placements ?? {}),
+        theme: p.theme,
+        coach: name,
+        coachKey: newKey() + newKey(),
+        teamOf: p.id,
+        createdAt: now,
+        updatedAt: now,
+        codeAt: now,
+        resetAt: 0,
+      })
+      if (p.deck && fs.existsSync(deckFile(p.id))) {
+        fs.copyFileSync(deckFile(p.id), deckFile(id))
+        copy.deck = { ...p.deck }
+      }
+      db.presentations[id] = copy
+      save()
+    }
+    res.json({ id: copy.id, coachKey: copy.coachKey, coach: copy.coach })
   })
 
   // ---------- Historique des conférences ----------
@@ -570,8 +638,11 @@ function createSpace(DATA_DIR) {
     const p = db.presentations[req.params.id]
     const uid = uidOf(req)
     if (!p || !uid || !req.get('x-key') || ![p.slideKey, p.coachKey].includes(req.get('x-key'))) return res.status(404).json({ error: 'Présentation introuvable' })
-    p.ownerId = uid
-    if (db.sessions[p.code]) db.sessions[p.code].hostId = uid
+    // les copies des coachs (lien commun) suivent leur présentation d'origine
+    for (const x of [p, ...Object.values(db.presentations).filter((c) => c.teamOf === p.id)]) {
+      x.ownerId = uid
+      if (db.sessions[x.code]) db.sessions[x.code].hostId = uid
+    }
     save()
     res.json({ ok: true })
   })

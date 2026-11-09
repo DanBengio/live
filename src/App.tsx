@@ -9,6 +9,7 @@ import Addin from './pages/Addin'
 import Coach from './pages/Coach'
 import CoachPresenter from './pages/CoachPresenter'
 import Adopt from './pages/Adopt'
+import Team from './pages/Team'
 import History from './pages/History'
 import Join from './pages/Join'
 import Participant from './pages/Participant'
@@ -28,6 +29,7 @@ export default function App() {
       <Route path="/addin" element={<Addin />} />
       <Route path="/coach/:id" element={<Coach />} />
       <Route path="/coach/:id/presenter" element={<CoachPresenter />} />
+      <Route path="/equipe/:id" element={<Team />} />
       <Route path="/adopter/:id" element={<Adopt />} />
       <Route path="/join" element={<Join />} />
       <Route path="/join/:code" element={<Join />} />

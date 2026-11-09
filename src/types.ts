@@ -55,6 +55,9 @@ export interface Presentation {
   /** Lien coach (/coach/<id>?k=<coachKey>) et prénom du coach */
   coachKey?: string
   coach?: string
+  /** Lien d'équipe (/equipe/<id>?k=<teamKey>) ; teamOf : présentation d'origine d'une copie de coach */
+  teamKey?: string
+  teamOf?: string
   /** Date du code actuel, et codes des conférences précédentes */
   codeAt?: number
   history?: { code: string; from: number; to: number }[]
