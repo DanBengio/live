@@ -230,6 +230,21 @@ function PollForm({ item, onChange }: { item: PollItem; onChange: (i: Item) => v
         <input type="checkbox" checked={item.multiple} onChange={(e) => onChange({ ...item, multiple: e.target.checked })} />
         Plusieurs réponses possibles
       </label>
+      {item.multiple && (
+        <label className="check">
+          Au maximum
+          <input
+            className="input"
+            type="number"
+            min={0}
+            max={item.options.length}
+            style={{ width: 70, margin: '0 6px' }}
+            value={item.maxChoices ?? 0}
+            onChange={(e) => onChange({ ...item, maxChoices: Math.max(0, Math.min(item.options.length, Number(e.target.value) || 0)) })}
+          />
+          choix (0 = sans limite)
+        </label>
+      )}
     </>
   )
 }

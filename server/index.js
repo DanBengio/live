@@ -774,6 +774,9 @@ function createSpace(DATA_DIR) {
     const current = s.status === 'active' && s.items?.[s.currentIndex]?.id === a.itemId
     const changeable = current && (item?.type === 'poll' || item?.type === 'wordcloud')
     if (store[key] && !changeable) return res.status(409).json({ error: 'Déjà répondu' })
+    if (item?.type === 'poll' && item.multiple && item.maxChoices > 0 && a.value.length > item.maxChoices) {
+      return res.status(400).json({ error: `${item.maxChoices} choix au maximum` })
+    }
     store[key] = {
       id: key,
       pid: uid,

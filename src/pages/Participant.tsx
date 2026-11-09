@@ -126,9 +126,9 @@ export default function Participant() {
       {item && session.phase !== 'leaderboard' && (
         <>
           <h2>{item.title}</h2>
-          {item.type === 'poll' && <PollAnswer item={item} answer={answered[item.id]} onSubmit={submit} />}
+          {item.type === 'poll' && <PollAnswer key={item.id} item={item} answer={answered[item.id]} onSubmit={submit} />}
           {item.type === 'wordcloud' && <WordAnswer key={item.id} item={item} answer={answered[item.id]} onSubmit={submit} />}
-          {item.type === 'quiz' && <QuizAnswer item={item} session={session} now={now} answer={answered[item.id]} onSubmit={submit} />}
+          {item.type === 'quiz' && <QuizAnswer key={item.id} item={item} session={session} now={now} answer={answered[item.id]} onSubmit={submit} />}
           {item.type === 'qa' && <QAView item={item} questions={questions} uid={uid!} onPost={post} onVote={vote} />}
         </>
       )}

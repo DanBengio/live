@@ -48,11 +48,16 @@ export function PollAnswer({ item, answer, onSubmit }: { item: PollItem; answer?
   }
   const toggle = (i: number) => {
     if (!item.multiple) return send([i])
-    setSel((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]))
+    setSel((s) => (s.includes(i) ? s.filter((x) => x !== i) : limit && s.length >= limit ? s : [...s, i]))
   }
+  const limit = item.multiple && item.maxChoices ? item.maxChoices : 0
   return (
     <>
-      {item.multiple && <p className="muted">Plusieurs réponses possibles.</p>}
+      {item.multiple && (
+        <p className="muted">
+          {limit ? `Choisis-en ${limit} au maximum (${sel.length}/${limit}).` : 'Plusieurs réponses possibles.'}
+        </p>
+      )}
       <div className="opt-list">
         {item.options.map((o, i) => (
           <button key={i} className={'opt-btn' + (sel.includes(i) ? ' selected' : '')} onClick={() => toggle(i)}>

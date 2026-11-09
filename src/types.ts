@@ -12,6 +12,8 @@ export interface PollItem extends BaseItem {
   type: 'poll'
   options: string[]
   multiple: boolean
+  /** Choix multiple : nombre maximum de réponses cochées (absent ou 0 = sans limite) */
+  maxChoices?: number
 }
 
 export interface WordCloudItem extends BaseItem {
