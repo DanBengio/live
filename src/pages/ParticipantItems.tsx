@@ -183,15 +183,21 @@ export function QAView({
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const visible = questions.filter((q) => !q.hidden)
+  // phrase à trous : « ___ » = une case à remplir
+  const parts = item.template ? item.template.split(/_{3,}/) : null
+  const [fills, setFills] = useState<string[]>(() => (parts ? parts.slice(1).map(() => '') : []))
+  const full = parts ? parts.map((p, i) => p + (i < fills.length ? fills[i].trim() : '')).join('') : text
+  const ready = parts ? fills.every((f) => f.trim()) : !!text.trim()
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault()
-    const t = text.trim().slice(0, 280)
-    if (!t) return
+    const t = full.trim().slice(0, 280)
+    if (!t || !ready) return
     setBusy(true)
     try {
       await onPost(t)
       setText('')
+      setFills((f) => f.map(() => ''))
     } finally {
       setBusy(false)
     }
@@ -199,10 +205,29 @@ export function QAView({
 
   return (
     <>
-      <p className="muted">{item.prompt}</p>
+      {parts ? item.phrases && <p className="muted">Ta phrase est anonyme.</p> : <p className="muted">{item.prompt}</p>}
       <form className="stack" onSubmit={send}>
-        <textarea className="textarea" value={text} maxLength={280} placeholder={item.phrases ? 'Ta phrase…' : 'Votre question…'} onChange={(e) => setText(e.target.value)} />
-        <button className="btn btn-primary" disabled={!text.trim() || busy}>
+        {parts ? (
+          <p className="fill-sentence">
+            {parts.map((p, i) => (
+              <span key={i}>
+                {p}
+                {i < fills.length && (
+                  <input
+                    className="input fill-input"
+                    value={fills[i]}
+                    maxLength={60}
+                    placeholder="…"
+                    onChange={(e) => setFills((f) => f.map((x, j) => (j === i ? e.target.value : x)))}
+                  />
+                )}
+              </span>
+            ))}
+          </p>
+        ) : (
+          <textarea className="textarea" value={text} maxLength={280} placeholder={item.phrases ? 'Ta phrase…' : 'Votre question…'} onChange={(e) => setText(e.target.value)} />
+        )}
+        <button className="btn btn-primary" disabled={!ready || busy}>
           {item.phrases ? 'Envoyer ma phrase' : 'Envoyer ma question'}
         </button>
       </form>

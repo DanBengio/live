@@ -33,6 +33,8 @@ export interface QAItem extends BaseItem {
   prompt: string
   /** Phrases à compléter : textes « phrase » au lieu de « question », sans votes ni noms */
   phrases?: boolean
+  /** Phrase à trous remplie sur le téléphone (« ___ » = une case), ex. « Cette semaine, j’utilise ma force ___ pour ___. » */
+  template?: string
 }
 
 export type Item = PollItem | WordCloudItem | QuizItem | QAItem

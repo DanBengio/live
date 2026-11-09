@@ -301,6 +301,12 @@ function QAForm({ item, onChange }: { item: QAItem; onChange: (i: Item) => void 
         <input type="checkbox" checked={!!item.phrases} onChange={(e) => onChange({ ...item, phrases: e.target.checked })} />
         Phrases à compléter (anonymes, sans votes) au lieu de questions
       </label>
+      {item.phrases && (
+        <label className="field">
+          <span>Phrase à trous sur le téléphone (___ pour chaque case, vide = texte libre)</span>
+          <input className="input" value={item.template ?? ''} onChange={(e) => onChange({ ...item, template: e.target.value || undefined })} />
+        </label>
+      )}
     </>
   )
 }

@@ -693,6 +693,16 @@ label.field > span {
   min-height: 0;
   position: relative;
 }
+.fill-sentence {
+  font-size: 1.15rem;
+  line-height: 2.4;
+}
+.fill-input {
+  display: inline-block;
+  width: 9em;
+  margin: 0 0.3em;
+  padding: 4px 8px;
+}
 .cloud-plain {
   display: flex;
   flex-wrap: wrap;
