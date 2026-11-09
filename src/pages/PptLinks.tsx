@@ -52,7 +52,9 @@ function CoachLink({ pres }: { pres: Presentation }) {
 
 /** Un seul lien pour plusieurs coachs : chacun tape son nom et reçoit sa propre copie (son code, sa page) */
 function TeamLink({ pres }: { pres: Presentation }) {
-  const [link, setLink] = useState(pres.teamKey ? `${location.origin}/equipe/${pres.id}?k=${pres.teamKey}` : '')
+  const [link, setLink] = useState(
+    pres.teamSlug ? `${location.origin}/${pres.teamSlug}` : pres.teamKey ? `${location.origin}/equipe/${pres.id}?k=${pres.teamKey}` : '',
+  )
   const [copied, setCopied] = useState(false)
   const create = async () => setLink(await teamLink(pres.id, await backend.getUid()))
   const copy = async () => {

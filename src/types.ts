@@ -57,6 +57,8 @@ export interface Presentation {
   coach?: string
   /** Lien d'équipe (/equipe/<id>?k=<teamKey>) ; teamOf : présentation d'origine d'une copie de coach */
   teamKey?: string
+  /** Adresse courte du lien commun (https://<site>/<teamSlug>) */
+  teamSlug?: string
   teamOf?: string
   /** Date du code actuel, et codes des conférences précédentes */
   codeAt?: number

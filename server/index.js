@@ -278,6 +278,7 @@ function createSpace(DATA_DIR) {
       coachKey: existing?.coachKey,
       coach: existing?.coach,
       teamKey: existing?.teamKey,
+      teamSlug: existing?.teamSlug,
       teamOf: existing?.teamOf,
       codeAt: existing?.codeAt,
       history: existing?.history,
@@ -412,8 +413,22 @@ function createSpace(DATA_DIR) {
     const p = ownPres(req, res)
     if (!p) return
     if (!p.teamKey) p.teamKey = newKey() + newKey()
+    // adresse courte facultative : https://<site>/<slug> mène au lien commun
+    if (typeof req.body?.slug === 'string') {
+      const slug = req.body.slug.trim().toLowerCase()
+      const reserved = ['api', 'addin', 'assets', 'presentations', 'historique', 'edit', 'host', 'screen', 'ppt', 'powerpoint', 'coach', 'equipe', 'adopter', 'join', 'p']
+      if (slug && (!/^[a-z0-9][a-z0-9-]{2,59}$/.test(slug) || reserved.includes(slug))) return res.status(400).json({ error: 'Adresse courte invalide' })
+      if (slug && Object.values(db.presentations).some((x) => x.id !== p.id && x.teamSlug === slug)) return res.status(409).json({ error: 'Adresse courte déjà prise' })
+      p.teamSlug = slug || undefined
+    }
     save()
-    res.json({ teamKey: p.teamKey })
+    res.json({ teamKey: p.teamKey, teamSlug: p.teamSlug })
+  })
+  // l'adresse courte d'un lien commun (ex. /mieux-se-connaitre)
+  r.get('/:slug', (req, res, next) => {
+    const p = Object.values(db.presentations).find((x) => x.teamSlug && x.teamKey && x.teamSlug === req.params.slug.toLowerCase())
+    if (!p) return next()
+    res.redirect(302, `/equipe/${p.id}?k=${encodeURIComponent(p.teamKey)}`)
   })
   r.get('/api/team/:id', (req, res) => {
     const p = teamPres(req, res)
