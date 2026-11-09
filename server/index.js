@@ -102,6 +102,7 @@ function createSpace(DATA_DIR) {
 
   const uidOf = (req) => String(req.get('x-uid') || '').slice(0, 64)
   const str = (v, max) => String(v ?? '').slice(0, max)
+  const isAdmin = (req) => !!INSTANCE.adminKey && req.get('x-admin') === INSTANCE.adminKey
   const num = (v, fallback = 0) => (Number.isFinite(Number(v)) ? Number(v) : fallback)
 
   function findSession(req, res) {
@@ -256,14 +257,16 @@ function createSpace(DATA_DIR) {
   })
   r.get('/api/presentations/:id', (req, res) => {
     const p = db.presentations[req.params.id]
-    if (!p || p.ownerId !== uidOf(req)) return res.status(404).json({ error: 'Présentation introuvable' })
+    if (!p || (p.ownerId !== uidOf(req) && !isAdmin(req))) return res.status(404).json({ error: 'Présentation introuvable' })
     res.json(p)
   })
   r.put('/api/presentations/:id', (req, res) => {
     const p = req.body
     const uid = uidOf(req)
     const existing = db.presentations[req.params.id]
-    if (!p || p.id !== req.params.id || !uid || p.ownerId !== uid || (existing && existing.ownerId !== uid)) {
+    // la clé d'administration de l'espace peut corriger une présentation existante (sans en changer le propriétaire)
+    if (p && existing && isAdmin(req)) p.ownerId = existing.ownerId
+    else if (!p || p.id !== req.params.id || !uid || p.ownerId !== uid || (existing && existing.ownerId !== uid)) {
       return res.status(403).json({ error: 'Refusé' })
     }
     db.presentations[p.id] = ensureFixed({
