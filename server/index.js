@@ -846,6 +846,135 @@ function createSpace(DATA_DIR) {
     if (s) res.json(sortQuestions(Object.values(db.questions[req.params.code] ?? {})))
   })
 
+  // ---------- Concours par tables (ex. Nejmatou Lakoum) ----------
+  // Chaque table = un studio. Le QR code de la table donne le studio ; on ne peut pas voter pour le sien.
+  // Un vote par téléphone (x-uid), définitif. L'animateur pilote avec la clé du concours (x-key).
+  db.contests ??= {}
+  const CATEGORIES = [
+    { id: 'scenario', label: 'Meilleur scénario' },
+    { id: 'affiche', label: 'Meilleure affiche' },
+    { id: 'ambiance', label: 'Meilleure ambiance' },
+  ]
+  const nameKey = (n) => String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  const studioName = (c, t) => (c.studios[t] || '').trim() || `Studio ${t}`
+  function contestResults(c) {
+    return c.categories.map((cat) => {
+      const counts = {}
+      for (let t = 1; t <= c.tables; t++) counts[t] = 0
+      for (const v of Object.values(c.voters)) if (counts[v.votes[cat.id]] !== undefined) counts[v.votes[cat.id]]++
+      const ranking = Object.entries(counts)
+        .map(([t, n]) => ({ table: Number(t), name: studioName(c, t), votes: n }))
+        .sort((a, b) => b.votes - a.votes || a.table - b.table)
+      return { id: cat.id, label: cat.label, ranking }
+    })
+  }
+  function contestOf(req, res, needKey) {
+    const c = db.contests[req.params.id]
+    if (!c) {
+      res.status(404).json({ error: 'Vote introuvable' })
+      return null
+    }
+    if (needKey && req.get('x-key') !== c.key) {
+      res.status(403).json({ error: 'Lien invalide' })
+      return null
+    }
+    return c
+  }
+  r.post('/api/contests', (req, res) => {
+    if (Object.keys(db.contests).length >= 100) return res.status(429).json({ error: 'Trop de votes' })
+    const tables = Math.min(30, Math.max(2, Math.round(num(req.body?.tables, 10))))
+    const id = crypto.randomBytes(5).toString('hex')
+    const c = (db.contests[id] = {
+      id,
+      key: newKey(),
+      title: str(req.body?.title, 80) || 'Vote',
+      tables,
+      expected: Math.max(0, Math.round(num(req.body?.expected, 0))),
+      studios: {},
+      categories: CATEGORIES,
+      phase: 'wait',
+      screen: { mode: 'count', cat: 0 },
+      voters: {},
+      createdAt: Date.now(),
+    })
+    save()
+    res.json({ id, key: c.key })
+  })
+  // téléphone : titre, studios, phase, et son propre vote s'il existe
+  r.get('/api/contests/:id', (req, res) => {
+    const c = contestOf(req, res, false)
+    if (!c) return
+    const me = c.voters[uidOf(req)]
+    res.json({
+      title: c.title,
+      tables: c.tables,
+      phase: c.phase,
+      categories: c.categories,
+      studios: Array.from({ length: c.tables }, (_, i) => ({ table: i + 1, name: studioName(c, i + 1) })),
+      me: me ? { name: me.name, table: me.table, votes: me.votes } : null,
+    })
+  })
+  r.post('/api/contests/:id/vote', (req, res) => {
+    const c = contestOf(req, res, false)
+    if (!c) return
+    const uid = uidOf(req)
+    if (!uid) return res.status(400).json({ error: 'Téléphone non reconnu, rechargez la page.' })
+    if (c.phase === 'wait') return res.status(409).json({ error: 'Le vote n’est pas encore ouvert.' })
+    if (c.phase !== 'open') return res.status(409).json({ error: 'Le vote est terminé.' })
+    if (c.voters[uid]) return res.status(409).json({ error: 'Vous avez déjà voté avec ce téléphone.' })
+    const table = Math.round(num(req.body?.table, 0))
+    if (table < 1 || table > c.tables) return res.status(400).json({ error: 'Scannez le QR code de votre table.' })
+    const name = str(req.body?.name, 60).replace(/\s+/g, ' ').trim()
+    if (nameKey(name).length < 2) return res.status(400).json({ error: 'Écrivez votre prénom et votre nom.' })
+    if (Object.values(c.voters).some((v) => v.table === table && nameKey(v.name) === nameKey(name)))
+      return res.status(409).json({ error: 'Cette personne a déjà voté.' })
+    const votes = {}
+    for (const cat of c.categories) {
+      const t = Math.round(num(req.body?.votes?.[cat.id], 0))
+      if (t < 1 || t > c.tables) return res.status(400).json({ error: `Choix manquant : ${cat.label}` })
+      if (t === table) return res.status(400).json({ error: 'Vous ne pouvez pas voter pour votre propre studio.' })
+      votes[cat.id] = t
+    }
+    c.voters[uid] = { name, table, votes, at: Date.now() }
+    save()
+    res.json({ ok: true })
+  })
+  // animateur et écran projeté (avec la clé)
+  r.get('/api/contests/:id/admin', (req, res) => {
+    const c = contestOf(req, res, true)
+    if (!c) return
+    const voters = Object.entries(c.voters)
+      .map(([uid, v]) => ({ uid, name: v.name, table: v.table, at: v.at }))
+      .sort((a, b) => a.table - b.table || a.at - b.at)
+    res.json({
+      id: c.id,
+      title: c.title,
+      tables: c.tables,
+      expected: c.expected,
+      phase: c.phase,
+      screen: c.screen,
+      studios: Array.from({ length: c.tables }, (_, i) => ({ table: i + 1, name: (c.studios[i + 1] || '').trim(), label: studioName(c, i + 1) })),
+      voters,
+      results: contestResults(c),
+    })
+  })
+  r.post('/api/contests/:id/admin', (req, res) => {
+    const c = contestOf(req, res, true)
+    if (!c) return
+    const b = req.body ?? {}
+    if (b.title !== undefined) c.title = str(b.title, 80) || c.title
+    if (b.expected !== undefined) c.expected = Math.max(0, Math.round(num(b.expected, c.expected)))
+    if (b.studios && typeof b.studios === 'object')
+      for (const [t, n] of Object.entries(b.studios)) if (Number(t) >= 1 && Number(t) <= c.tables) c.studios[Number(t)] = str(n, 50)
+    if (['wait', 'open', 'closed'].includes(b.phase)) c.phase = b.phase
+    if (b.screen && ['count', 'reveal', 'podium'].includes(b.screen.mode))
+      c.screen = { mode: b.screen.mode, cat: Math.min(c.categories.length - 1, Math.max(0, Math.round(num(b.screen.cat, 0)))) }
+    if (b.removeVoter) delete c.voters[str(b.removeVoter, 64)]
+    if (b.resetVotes === true) c.voters = {}
+    save()
+    res.json({ ok: true })
+  })
+
   r.use('/api', (_req, res) => res.status(404).json({ error: 'Route inconnue' }))
 
   return { router: r, INSTANCE, DATA_FILE, lanUrl }

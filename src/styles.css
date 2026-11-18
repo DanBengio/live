@@ -1204,3 +1204,276 @@ body.theme-metablob .phone h2 {
   font-family: 'Jost', system-ui, sans-serif;
   font-weight: 500;
 }
+
+/* ---------- Concours par tables (Nejmatou Lakoum) : ambiance cinéma, or sur fond nuit ---------- */
+body.contest-body {
+  --accent: #c99a2e;
+  --accent-hover: #b0841f;
+  --accent2: #e8c46a;
+  --bg2: #17120d;
+  --card: #221a12;
+  --card2: #2e2318;
+  --border: #4a3a26;
+  background: radial-gradient(1200px 800px at 50% -20%, #3a2410 0%, #0d0b0a 60%);
+}
+.contest-body .opt-btn.selected {
+  background: rgba(201, 154, 46, 0.18);
+}
+.contest-head {
+  text-align: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.contest-title {
+  font-weight: 900;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--accent2);
+}
+.contest-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(201, 154, 46, 0.2);
+  color: var(--accent2);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.contest-pilot .card {
+  margin-bottom: 16px;
+}
+.contest-pilot summary {
+  cursor: pointer;
+}
+.contest-phase {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: var(--card2);
+}
+.contest-phase.open {
+  background: #14532d;
+  color: #bbf7d0;
+}
+.contest-phase.closed {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+.contest-big {
+  font-size: 2.6rem;
+  font-weight: 900;
+}
+.contest-names {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+}
+.contest-names label {
+  flex-wrap: nowrap;
+}
+.contest-count {
+  white-space: nowrap;
+  min-width: 44px;
+}
+.contest-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.contest-results ol {
+  padding-left: 22px;
+  margin: 6px 0 0;
+}
+
+/* écran projeté */
+.contest-stage {
+  container-type: size;
+  text-align: center;
+}
+.contest-marquee {
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: clamp(22px, 3cqw, 46px);
+  color: var(--accent2);
+  padding: 10px 0 14px;
+  border-bottom: 2px solid rgba(201, 154, 46, 0.4);
+}
+.contest-counter,
+.contest-reveal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5cqh;
+}
+.contest-status {
+  font-size: clamp(24px, 4cqw, 64px);
+  font-weight: 800;
+}
+.contest-huge {
+  font-size: clamp(80px, 22cqh, 260px);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent2);
+  font-variant-numeric: tabular-nums;
+}
+.contest-huge span {
+  color: var(--muted);
+  font-size: 0.45em;
+}
+.contest-sub {
+  font-size: clamp(18px, 2.4cqw, 34px);
+}
+.contest-cats {
+  margin-top: 3cqh;
+  font-size: clamp(16px, 2cqw, 28px);
+  color: var(--muted);
+}
+.contest-cat {
+  font-size: clamp(28px, 5cqw, 72px);
+  font-weight: 900;
+  color: var(--accent2);
+}
+.contest-cat.small {
+  font-size: clamp(20px, 2.6cqw, 38px);
+}
+.contest-rows {
+  width: min(900px, 80%);
+  display: flex;
+  flex-direction: column;
+  gap: 1cqh;
+}
+.contest-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: clamp(18px, 2.6cqw, 36px);
+  padding: 0.8cqh 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out;
+  text-align: left;
+}
+.contest-row.in {
+  opacity: 1;
+  transform: none;
+}
+.contest-bar {
+  height: 0.5em;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.contest-winner {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.9s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.contest-winner.in {
+  opacity: 1;
+  transform: none;
+}
+.contest-trophy {
+  font-size: clamp(50px, 10cqh, 120px);
+}
+.contest-winner-name {
+  font-size: clamp(36px, 7cqw, 110px);
+  font-weight: 900;
+  line-height: 1.05;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(232, 196, 106, 0.6);
+}
+.contest-winner-votes {
+  font-size: clamp(16px, 2.2cqw, 30px);
+  color: var(--muted);
+  margin-top: 8px;
+}
+.contest-podium {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3cqw;
+  align-items: center;
+}
+.contest-podium .contest-winner-name {
+  font-size: clamp(24px, 4cqw, 60px);
+}
+.contest-award {
+  animation: pop 0.6s ease-out both;
+}
+.contest-award:nth-child(2) {
+  animation-delay: 0.4s;
+}
+.contest-award:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+/* QR codes à imprimer : 2 par page A4 */
+.qr-sheet {
+  background: #fff;
+  color: #111;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+.qr-card {
+  border: 2px dashed #bbb;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  break-inside: avoid;
+}
+.qr-title {
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a6416;
+}
+.qr-table {
+  font-size: 2.6rem;
+  font-weight: 900;
+}
+.qr-help {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+.qr-small {
+  font-size: 0.85rem;
+  color: #555;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  .qr-sheet {
+    display: block;
+    padding: 0;
+  }
+  .qr-card {
+    height: 128mm;
+    justify-content: center;
+    margin-bottom: 8mm;
+    page-break-inside: avoid;
+  }
+  .qr-card:nth-child(2n) {
+    page-break-after: always;
+  }
+}

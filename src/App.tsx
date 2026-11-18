@@ -13,6 +13,7 @@ import Team from './pages/Team'
 import History from './pages/History'
 import Join from './pages/Join'
 import Participant from './pages/Participant'
+import { ContestPilot, ContestQr, ContestScreen, ContestVote } from './pages/Contest'
 
 export default function App() {
   return (
@@ -34,6 +35,10 @@ export default function App() {
       <Route path="/join" element={<Join />} />
       <Route path="/join/:code" element={<Join />} />
       <Route path="/p/:code" element={<Participant />} />
+      <Route path="/v/:id" element={<ContestVote />} />
+      <Route path="/v/:id/pilote" element={<ContestPilot />} />
+      <Route path="/v/:id/ecran" element={<ContestScreen />} />
+      <Route path="/v/:id/qr" element={<ContestQr />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
