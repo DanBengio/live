@@ -201,7 +201,8 @@ function createSpace(DATA_DIR) {
   })
   // Installateurs Windows : un dossier et une clé de registre par module (deux sites = deux modules)
   const BS = '\\'
-  const regKey = ['HKCU', 'Software', 'Microsoft', 'Office', '16.0', 'WEF', 'Developer'].join(BS)
+  // 16.0 = Office 2016, 2019, 2021, 365 ; 15.0 = Office 2013 (même module, clé différente)
+  const regKeys = ['16.0', '15.0'].map((v) => ['HKCU', 'Software', 'Microsoft', 'Office', v, 'WEF', 'Developer'].join(BS))
   const addinDir = ['%LOCALAPPDATA%', 'LiveAddin', ADDIN_ID].join(BS)
   const bat = (lines) => lines.join('\r\n') + '\r\n'
   r.get('/addin/installer-module-live.bat', (req, res) => {
@@ -214,13 +215,18 @@ function createSpace(DATA_DIR) {
           `rem Installe le module PowerPoint "${ADDIN_NAME}" pour cet utilisateur Windows (une seule fois par PC).`,
           `set "DIR=${addinDir}"`,
           'if not exist "%DIR%" mkdir "%DIR%"',
-          `curl -fsSL "${publicUrlFor(req)}/addin/manifest.xml" -o "%DIR%${BS}manifest.xml"`,
+          `del "%DIR%${BS}manifest.xml" 2>nul`,
+          `curl -fsSL "${publicUrlFor(req)}/addin/manifest.xml" -o "%DIR%${BS}manifest.xml" 2>nul`,
+          // Windows ancien sans curl : PowerShell (TLS 1.2 forcé pour les vieux .NET)
           'if errorlevel 1 (',
+          `  powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol=3072; (New-Object Net.WebClient).DownloadFile('${publicUrlFor(req)}/addin/manifest.xml', '%DIR%${BS}manifest.xml')"`,
+          ')',
+          `if not exist "%DIR%${BS}manifest.xml" (`,
           '  echo Telechargement impossible : verifiez la connexion internet.',
           '  pause',
           '  exit /b 1',
           ')',
-          `reg add "${regKey}" /v "${ADDIN_ID}" /t REG_SZ /d "%DIR%${BS}manifest.xml" /f >nul`,
+          ...regKeys.map((k) => `reg add "${k}" /v "${ADDIN_ID}" /t REG_SZ /d "%DIR%${BS}manifest.xml" /f >nul`),
           'echo.',
           `echo Module ${ADDIN_NAME} installe.`,
           "echo Fermez PowerPoint s'il est ouvert, puis rouvrez-le :",
@@ -238,7 +244,7 @@ function createSpace(DATA_DIR) {
         bat([
           '@echo off',
           `rem Retire le module PowerPoint "${ADDIN_NAME}".`,
-          `reg delete "${regKey}" /v "${ADDIN_ID}" /f >nul 2>nul`,
+          ...regKeys.map((k) => `reg delete "${k}" /v "${ADDIN_ID}" /f >nul 2>nul`),
           `rmdir /s /q "${addinDir}" 2>nul`,
           `echo Module ${ADDIN_NAME} retire. Fermez et rouvrez PowerPoint.`,
           'pause',
