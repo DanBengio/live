@@ -850,11 +850,14 @@ function createSpace(DATA_DIR) {
   // Chaque table = un studio. Le QR code de la table donne le studio ; on ne peut pas voter pour le sien.
   // Un vote par téléphone (x-uid), définitif. L'animateur pilote avec la clé du concours (x-key).
   db.contests ??= {}
+  // l'ordre des étapes sur les téléphones (et des révélations)
   const CATEGORIES = [
-    { id: 'scenario', label: 'Meilleur scénario' },
-    { id: 'affiche', label: 'Meilleure affiche' },
-    { id: 'ambiance', label: 'Meilleure ambiance' },
+    { id: 'scenario', label: 'Meilleur scénario', emoji: '📜', question: 'Quel studio a écrit le meilleur scénario ?' },
+    { id: 'ambiance', label: 'Meilleure ambiance', emoji: '🎉', question: 'Quel studio a mis la meilleure ambiance ?' },
+    { id: 'affiche', label: 'Meilleure affiche', emoji: '🎨', question: 'Quel studio a fait la meilleure affiche ?' },
   ]
+  // les votes déjà créés suivent toujours l'ordre et les textes ci-dessus
+  for (const c of Object.values(db.contests)) c.categories = CATEGORIES
   const nameKey = (n) => String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
   const studioName = (c, t) => (c.studios[t] || '').trim() || `Studio ${t}`
   function contestResults(c) {

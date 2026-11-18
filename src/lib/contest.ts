@@ -5,6 +5,8 @@ import { uid as makeId } from './ids'
 export interface Category {
   id: string
   label: string
+  emoji?: string
+  question?: string
 }
 export interface Studio {
   table: number

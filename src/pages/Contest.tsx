@@ -128,15 +128,39 @@ export function ContestVote() {
   const cats = data.categories
   const studio = (t: number) => data.studios.find((s) => s.table === t)?.name ?? ''
 
+  const goTo = (n: number) => {
+    setStep(n)
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+  }
+  // les 3 étapes en haut de l'écran : faites ✓, en cours, à venir
+  const stepper = (
+    <div className="contest-steps">
+      {cats.map((c, i) => (
+        <div key={c.id} className={`contest-step${i === step ? ' now' : votes[c.id] && i < step ? ' done' : ''}`}>
+          <span className="contest-step-dot">{i < step && votes[c.id] ? '✓' : i + 1}</span>
+          <span className="contest-step-label">{c.label.replace(/^Meilleure? /, '')}</span>
+        </div>
+      ))}
+    </div>
+  )
+
   if (step < cats.length) {
     const cat = cats[step]
+    const next = cats[step + 1]
     return (
       <div className="phone">
         {header}
-        <div className="muted">
-          Étape {step + 1} sur {cats.length}
+        {stepper}
+        <div key={cat.id} className="contest-question">
+          {step > 0 && <div className="contest-saved">✓ {cats[step - 1].label} : {studio(votes[cats[step - 1].id])}</div>}
+          <div className="contest-q-step">
+            Étape {step + 1} sur {cats.length}
+          </div>
+          <h2 className="contest-q-title">
+            {cat.emoji} {cat.label}
+          </h2>
+          {cat.question && <p className="muted">{cat.question}</p>}
         </div>
-        <h2>{cat.label}</h2>
         <div className="opt-list">
           {others.map((s) => (
             <button
@@ -149,14 +173,14 @@ export function ContestVote() {
             </button>
           ))}
         </div>
-        <div className="row">
+        <div className="contest-next">
           {step > 0 && (
-            <button className="btn" onClick={() => setStep(step - 1)}>
-              ← Retour
+            <button className="btn" onClick={() => goTo(step - 1)}>
+              ←
             </button>
           )}
-          <button className="btn btn-primary btn-lg grow" disabled={!votes[cat.id]} onClick={() => setStep(step + 1)}>
-            Suivant
+          <button className="btn btn-primary btn-lg grow" disabled={!votes[cat.id]} onClick={() => goTo(step + 1)}>
+            {next ? `Suivant : ${next.label} →` : 'Voir mon vote →'}
           </button>
         </div>
       </div>
@@ -185,7 +209,7 @@ export function ContestVote() {
               <div className="muted">{c.label}</div>
               <b>{studio(votes[c.id])}</b>
             </div>
-            <button className="btn btn-sm" onClick={() => setStep(i)}>
+            <button className="btn btn-sm" onClick={() => goTo(i)}>
               Modifier
             </button>
           </div>
@@ -522,7 +546,7 @@ export function ContestQr() {
           <div className="qr-table">Table {s.table}</div>
           <QRCodeSVG value={`${origin}/v/${id}?t=${s.table}`} size={260} level="M" />
           <div className="qr-help">Scannez pour voter</div>
-          <div className="qr-small">Meilleur scénario · Meilleure affiche · Meilleure ambiance</div>
+          <div className="qr-small">{data.results.map((r) => r.label).join(' · ')}</div>
         </div>
       ))}
     </div>
