@@ -140,7 +140,7 @@ export default function Coach() {
         </ul>
         <p className="muted" style={{ fontSize: '0.85rem' }}>
           {pres.teamOf
-            ? 'Ajoutez cette page à vos favoris. Sinon, rouvrez le lien commun et retapez votre prénom et votre nom.'
+            ? 'Ajoutez cette page à vos favoris : c’est votre lien personnel, ne le partagez pas.'
             : 'Ne partagez pas ce lien : il prépare vos conférences.'}
         </p>
       </div>
