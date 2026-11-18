@@ -1477,3 +1477,54 @@ body.contest-body {
     page-break-after: always;
   }
 }
+/* révélation 3e → 2e → 1er */
+.contest-places {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2cqh;
+  width: 100%;
+}
+.contest-place {
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.9s cubic-bezier(0.2, 1.4, 0.4, 1);
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  width: min(1000px, 85%);
+  padding: 1.2cqh 28px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: left;
+  font-size: clamp(18px, 2.8cqw, 40px);
+}
+.contest-place.in {
+  opacity: 1;
+  transform: none;
+}
+.contest-medal {
+  font-size: 1.4em;
+}
+.contest-place-label {
+  color: var(--muted);
+  font-weight: 700;
+}
+.contest-place-name {
+  font-weight: 900;
+}
+.contest-place .contest-winner-votes {
+  margin: 0;
+  font-size: 0.6em;
+}
+.contest-place.rank-1 {
+  font-size: clamp(26px, 4.6cqw, 72px);
+  background: rgba(201, 154, 46, 0.18);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 60px rgba(232, 196, 106, 0.35);
+}
+.contest-place.rank-1 .contest-place-name {
+  color: #fff;
+  text-shadow: 0 0 40px rgba(232, 196, 106, 0.6);
+}

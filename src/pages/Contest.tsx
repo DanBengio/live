@@ -394,46 +394,56 @@ export function ContestPilot() {
 /** les gagnants d'une catégorie (plusieurs en cas d'égalité) */
 const winnersOf = (ranking: Ranked[]) => ranking.filter((r) => r.votes > 0 && r.votes === ranking[0].votes)
 
+/** places 1 à 3 (classement « olympique » : en cas d'égalité, même place, et la suivante est sautée) */
+function placesOf(ranking: Ranked[]) {
+  const voted = ranking.filter((r) => r.votes > 0)
+  const places: { rank: number; studios: Ranked[] }[] = []
+  for (const r of voted) {
+    const rank = 1 + voted.filter((x) => x.votes > r.votes).length
+    if (rank > 3) break
+    const p = places.find((x) => x.rank === rank)
+    if (p) p.studios.push(r)
+    else places.push({ rank, studios: [r] })
+  }
+  return places
+}
+const MEDAL: Record<number, string> = { 1: '🏆', 2: '🥈', 3: '🥉' }
+const PLACE: Record<number, string> = { 1: '1er', 2: '2e', 3: '3e' }
+const REVEAL_GAP = 5000
+
 function Reveal({ data }: { data: ContestAdmin }) {
   const res = data.results[data.screen.cat]
-  // suspense : les places 5 à 2 apparaissent une à une, puis le gagnant
+  // suspense : le 3e, puis le 2e, puis le 1er, à 5 secondes d'écart
   const [step, setStep] = useState(0)
   useEffect(() => {
     setStep(0)
-    const t = setInterval(() => setStep((s) => s + 1), 1500)
-    return () => clearInterval(t)
+    const first = setTimeout(() => setStep(1), 2000)
+    const t = setInterval(() => setStep((s) => (s > 0 ? s + 1 : s)), REVEAL_GAP)
+    return () => {
+      clearTimeout(first)
+      clearInterval(t)
+    }
   }, [data.screen.cat, data.screen.mode])
   if (!res) return null
-  const winners = winnersOf(res.ranking)
-  const rest = res.ranking.filter((r) => !winners.includes(r) && r.votes > 0).slice(0, Math.max(0, 5 - winners.length))
-  const shown = [...rest].reverse() // du 5e au 2e
-  const max = res.ranking[0]?.votes || 1
-  const winnerAt = shown.length + 2
+  const places = placesOf(res.ranking)
+  const order = [...places].reverse() // du 3e au 1er
+  const votes = (n: number) => `${n} vote${n > 1 ? 's' : ''}`
   return (
     <div className="contest-reveal">
       <div className="contest-cat">{res.label}</div>
-      <div className="contest-rows">
-        {shown.map((r, i) => (
-          <div key={r.table} className={`contest-row${step > i ? ' in' : ''}`}>
-            <span className="grow">{r.name}</span>
-            <span className="contest-bar" style={{ width: `${(r.votes / max) * 30}%` }} />
-            <b>{r.votes}</b>
+      {places.length === 0 && <div className="contest-status">Aucun vote</div>}
+      <div className="contest-places">
+        {order.map((p, i) => (
+          <div key={p.rank} className={`contest-place rank-${p.rank}${step > i ? ' in' : ''}`}>
+            <div className="contest-medal">{MEDAL[p.rank]}</div>
+            <div className="contest-place-label">
+              {PLACE[p.rank]}
+              {p.studios.length > 1 && ' ex æquo'}
+            </div>
+            <div className="contest-place-name">{p.studios.map((x) => x.name).join(' & ')}</div>
+            <div className="contest-winner-votes">{votes(p.studios[0].votes)}</div>
           </div>
         ))}
-      </div>
-      <div className={`contest-winner${step >= winnerAt ? ' in' : ''}`}>
-        {winners.length === 0 ? (
-          <div>Aucun vote</div>
-        ) : (
-          <>
-            <div className="contest-trophy">🏆</div>
-            <div className="contest-winner-name">{winners.map((w) => w.name).join(' & ')}</div>
-            <div className="contest-winner-votes">
-              {winners[0].votes} vote{winners[0].votes > 1 ? 's' : ''}
-              {winners.length > 1 && ' · ex æquo'}
-            </div>
-          </>
-        )}
       </div>
     </div>
   )
