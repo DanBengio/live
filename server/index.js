@@ -883,6 +883,14 @@ function createSpace(DATA_DIR) {
     }
     return c
   }
+  // un vote peut avoir son propre nom de domaine (ex. nejmatoulakoum.ma) : la page d'accueil y ouvre le vote
+  const hostOf = (req) => String(req.get('x-forwarded-host') || req.get('host') || '').toLowerCase().split(',')[0].trim().split(':')[0].replace(/^www\./, '')
+  r.get('/', (req, res, next) => {
+    const h = hostOf(req)
+    const c = h && Object.values(db.contests).find((x) => (x.domains ?? []).includes(h))
+    if (!c) return next()
+    res.set('Cache-Control', 'no-store').redirect(302, `/v/${c.id}`)
+  })
   r.post('/api/contests', (req, res) => {
     if (Object.keys(db.contests).length >= 100) return res.status(429).json({ error: 'Trop de votes' })
     const tables = Math.min(30, Math.max(2, Math.round(num(req.body?.tables, 10))))
@@ -972,6 +980,8 @@ function createSpace(DATA_DIR) {
     if (['wait', 'open', 'closed'].includes(b.phase)) c.phase = b.phase
     if (b.screen && ['count', 'reveal', 'podium'].includes(b.screen.mode))
       c.screen = { mode: b.screen.mode, cat: Math.min(c.categories.length - 1, Math.max(0, Math.round(num(b.screen.cat, 0)))) }
+    if (Array.isArray(b.domains))
+      c.domains = b.domains.map((d) => str(d, 100).toLowerCase().trim().replace(/^www\./, '')).filter((d) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d))
     if (b.removeVoter) delete c.voters[str(b.removeVoter, 64)]
     if (b.resetVotes === true) c.voters = {}
     save()
