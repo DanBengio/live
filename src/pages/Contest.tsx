@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { contestApi, usePoll, type ContestAdmin, type Ranked } from '../lib/contest'
+import { cymbal, drumRoll, soundReady, unlockSound } from '../lib/drums'
 
 function useContestTheme() {
   useEffect(() => {
@@ -360,6 +361,9 @@ export function ContestPilot() {
         <a className="btn" href={`/v/${id}/ecran${k}`} target="_blank" rel="noreferrer">
           Ouvrir l’écran à projeter ↗
         </a>
+        <p className="muted">
+          🔊 Sur l’écran projeté, cliquez une fois sur « Activer le son » (en bas à droite) pour avoir le roulement de tambour.
+        </p>
         <a className="btn" href={`/v/${id}/qr${k}`} target="_blank" rel="noreferrer">
           QR codes des tables (PDF, 4 par feuille) ↗
         </a>
@@ -460,29 +464,48 @@ function placesOf(ranking: Ranked[]) {
 }
 const MEDAL: Record<number, string> = { 1: '🏆', 2: '🥈', 3: '🥉' }
 const PLACE: Record<number, string> = { 1: '1er', 2: '2e', 3: '3e' }
-const REVEAL_GAP = 5000
+/** roulement de tambour avant chaque place : 8 s avant la première, 5 s avant les suivantes */
+const ROLL_FIRST = 8000
+const ROLL_NEXT = 5000
+/** pause après chaque place révélée, le temps de lire et d'applaudir */
+const PAUSE = 1500
 
 function Reveal({ data }: { data: ContestAdmin }) {
   const res = data.results[data.screen.cat]
-  // suspense : le 3e, puis le 2e, puis le 1er, à 5 secondes d'écart
+  const places = res ? placesOf(res.ranking) : []
+  const order = [...places].reverse() // du 3e au 1er (ex æquo : une seule place pour plusieurs studios)
+  const n = order.length
+  // step = nombre de places déjà révélées
   const [step, setStep] = useState(0)
   useEffect(() => {
     setStep(0)
-    const first = setTimeout(() => setStep(1), 2000)
-    const t = setInterval(() => setStep((s) => (s > 0 ? s + 1 : s)), REVEAL_GAP)
-    return () => {
-      clearTimeout(first)
-      clearInterval(t)
+    const timers: ReturnType<typeof setTimeout>[] = []
+    const stops: (() => void)[] = []
+    let t = 600
+    for (let i = 0; i < n; i++) {
+      const roll = i === 0 ? ROLL_FIRST : ROLL_NEXT
+      timers.push(setTimeout(() => stops.push(drumRoll(roll)), t))
+      t += roll
+      timers.push(
+        setTimeout(() => {
+          setStep(i + 1)
+          cymbal(i === n - 1)
+        }, t),
+      )
+      t += PAUSE
     }
-  }, [data.screen.cat, data.screen.mode])
+    return () => {
+      timers.forEach(clearTimeout)
+      stops.forEach((stop) => stop())
+    }
+  }, [data.screen.cat, data.screen.mode, n])
   if (!res) return null
-  const places = placesOf(res.ranking)
-  const order = [...places].reverse() // du 3e au 1er
-  const votes = (n: number) => `${n} vote${n > 1 ? 's' : ''}`
+  const votes = (x: number) => `${x} vote${x > 1 ? 's' : ''}`
+  const next = order[step]
   return (
     <div className="contest-reveal">
       <div className="contest-cat">{res.label}</div>
-      {places.length === 0 && <div className="contest-status">Aucun vote</div>}
+      {n === 0 && <div className="contest-status">Aucun vote</div>}
       <div className="contest-places">
         {order.map((p, i) => (
           <div key={p.rank} className={`contest-place rank-${p.rank}${step > i ? ' in' : ''}`}>
@@ -496,7 +519,23 @@ function Reveal({ data }: { data: ContestAdmin }) {
           </div>
         ))}
       </div>
+      {next && (
+        <div key={step} className="contest-drum">
+          🥁 <span>{next.rank === 1 ? (next.studios.length > 1 ? 'Et les gagnants sont…' : 'Et le gagnant est…') : `La ${next.rank}e place revient à…`}</span>
+        </div>
+      )}
     </div>
+  )
+}
+
+/** le navigateur n'autorise le son qu'après un clic sur la page */
+function SoundButton() {
+  const [on, setOn] = useState(soundReady())
+  if (on) return null
+  return (
+    <button className="contest-sound" onClick={async () => setOn(await unlockSound())}>
+      🔊 Cliquez ici pour activer le son
+    </button>
   )
 }
 
@@ -545,6 +584,7 @@ export function ContestScreen() {
     <div className="stage contest-stage">
       <div className="contest-marquee">{data.title}</div>
       <div className="stage-body">{body}</div>
+      <SoundButton />
     </div>
   )
 }

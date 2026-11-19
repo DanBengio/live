@@ -1651,3 +1651,37 @@ body.contest-body {
 .contest-next .btn-lg {
   white-space: normal;
 }
+/* roulement de tambour en cours */
+.contest-drum {
+  margin-top: 2cqh;
+  font-size: clamp(28px, 5cqw, 72px);
+  animation: contest-shake 0.12s linear infinite alternate;
+}
+.contest-drum span {
+  font-size: 0.5em;
+  color: var(--muted);
+  vertical-align: middle;
+}
+@keyframes contest-shake {
+  from {
+    transform: translate(-2px, 1px) rotate(-2deg);
+  }
+  to {
+    transform: translate(2px, -1px) rotate(2deg);
+  }
+}
+.contest-sound {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: #221a12;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  animation: pop 0.4s ease-out;
+}
