@@ -1685,3 +1685,61 @@ body.contest-body {
   cursor: pointer;
   animation: pop 0.4s ease-out;
 }
+
+/* télécommande (page de pilotage sur téléphone) */
+.contest-remote h2 {
+  font-size: 1.6rem;
+  color: var(--accent2);
+}
+.contest-next-step {
+  white-space: normal;
+  width: 100%;
+  min-height: 72px;
+}
+.contest-steplist {
+  margin: 4px 0 0;
+  padding-left: 0;
+  list-style: none;
+  counter-reset: st;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.contest-steplist li {
+  counter-increment: st;
+}
+.contest-steplist button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.contest-steplist button::before {
+  content: counter(st) '. ';
+}
+.contest-steplist li.done button {
+  color: var(--fg);
+  opacity: 0.6;
+}
+.contest-steplist li.done button::after {
+  content: ' ✓';
+  color: #22c55e;
+}
+.contest-steplist li.now button {
+  border-color: var(--accent);
+  color: var(--fg);
+  font-weight: 700;
+}
+@media (max-width: 600px) {
+  .contest-pilot.page {
+    padding-top: 16px;
+  }
+  .contest-pilot .page-header {
+    margin-bottom: 14px;
+  }
+}

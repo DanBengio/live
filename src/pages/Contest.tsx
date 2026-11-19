@@ -236,6 +236,7 @@ export function ContestPilot() {
   const [names, setNames] = useState<Record<number, string> | null>(null)
   const [saved, setSaved] = useState(false)
   const [expectedDraft, setExpectedDraft] = useState<string | null>(null)
+  const [locked, setLocked] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -262,8 +263,45 @@ export function ContestPilot() {
   }
   const perTable = (t: number) => data.voters.filter((v) => v.table === t).length
   const k = `?k=${encodeURIComponent(key)}`
+  // le déroulé de la soirée : chaque étape règle le vote et l'écran projeté
+  const cats = data.results
+  const STEPS: { label: string; title: string; screen: string; apply: Record<string, unknown>; confirm?: string }[] = [
+    { label: 'Écran d’attente', title: 'Écran d’attente', screen: '« Le vote va bientôt ouvrir »', apply: { phase: 'wait', screen: { mode: 'count' } } },
+    { label: 'Ouvrir le vote', title: 'Vote ouvert', screen: 'le compteur des votants', apply: { phase: 'open', screen: { mode: 'count' } } },
+    {
+      label: 'Clôturer le vote',
+      title: 'Vote clos',
+      screen: '« Les votes sont clos »',
+      apply: { phase: 'closed', screen: { mode: 'count' } },
+      confirm: 'Clôturer le vote ? Plus personne ne pourra voter.',
+    },
+    ...cats.map((c, i) => ({
+      label: `Révéler : ${c.label}`,
+      title: c.label,
+      screen: 'tambour, puis 3e, 2e et 1er',
+      apply: { phase: 'closed', screen: { mode: 'reveal', cat: i } },
+    })),
+    { label: 'Palmarès complet', title: 'Palmarès complet', screen: 'les 3 gagnants', apply: { phase: 'closed', screen: { mode: 'podium' } } },
+  ]
+  // étape en cours, d'après l'état du vote et de l'écran
   const scr = data.screen
-  const on = (mode: string, cat = 0) => scr.mode === mode && (mode !== 'reveal' || scr.cat === cat)
+  const current =
+    scr.mode === 'podium' ? STEPS.length - 1 : scr.mode === 'reveal' ? 3 + scr.cat : data.phase === 'wait' ? 0 : data.phase === 'open' ? 1 : 2
+  // après un appui, la télécommande attend 3 s (un double appui sauterait une étape)
+  const goStep = async (i: number) => {
+    const st = STEPS[i]
+    if (!st || locked) return
+    if (st.confirm && !confirm(st.confirm)) return
+    setLocked(true)
+    setTimeout(() => setLocked(false), 3000)
+    await update(st.apply)
+  }
+  const replay = async () => {
+    await update({ screen: { mode: 'count' } })
+    setTimeout(() => update(STEPS[current].apply), 2500)
+  }
+  const next = STEPS[current + 1]
+  const showCount = current <= 2
 
   return (
     <div className="page contest-pilot">
@@ -273,67 +311,83 @@ export function ContestPilot() {
       </div>
       {error && <p className="err">⚠️ {error}</p>}
 
-      <div className="card stack">
-        <div className="row">
-          <h3 className="grow">1. Le vote</h3>
-          <span className={`contest-phase ${data.phase}`}>
-            {data.phase === 'wait' ? 'Pas encore ouvert' : data.phase === 'open' ? 'Ouvert' : 'Clos'}
-          </span>
+      <div className="card stack contest-remote">
+        <div className="muted">
+          Étape {current + 1} sur {STEPS.length} · à l’écran : {STEPS[current].screen}
         </div>
-        <div className="contest-big">
-          {data.voters.length}
-          {data.expected > 0 && <span className="muted"> / {data.expected}</span>} <small className="muted">votants</small>
-        </div>
-        {expectedDraft === null ? (
-          <div className="row">
-            <span className="muted">Participants présents : {data.expected || 'non indiqué'}</span>
-            <button className="btn btn-sm" onClick={() => setExpectedDraft(String(data.expected || ''))}>
-              Modifier
-            </button>
-          </div>
+        <h2>{STEPS[current].title}</h2>
+        {showCount && (
+          <>
+            <div className="contest-big">
+              {data.voters.length}
+              {data.expected > 0 && <span className="muted"> / {data.expected}</span>} <small className="muted">votants</small>
+            </div>
+            {expectedDraft === null ? (
+              <div className="row">
+                <span className="muted">Participants présents : {data.expected || 'non indiqué'}</span>
+                <button className="btn btn-sm" onClick={() => setExpectedDraft(String(data.expected || ''))}>
+                  Modifier
+                </button>
+              </div>
+            ) : (
+              <form
+                className="row"
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  await update({ expected: Number(expectedDraft) || 0 })
+                  setExpectedDraft(null)
+                }}
+              >
+                <span>Participants présents :</span>
+                <input
+                  className="input"
+                  style={{ width: 100 }}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={expectedDraft}
+                  onChange={(e) => setExpectedDraft(e.target.value)}
+                  autoFocus
+                />
+                <button className="btn btn-primary btn-sm">OK</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setExpectedDraft(null)}>
+                  Annuler
+                </button>
+              </form>
+            )}
+          </>
+        )}
+        {next ? (
+          <button className="btn btn-primary btn-lg contest-next-step" disabled={locked} onClick={() => goStep(current + 1)}>
+            Étape suivante : {next.label} →
+          </button>
         ) : (
-          <form
-            className="row"
-            onSubmit={async (e) => {
-              e.preventDefault()
-              await update({ expected: Number(expectedDraft) || 0 })
-              setExpectedDraft(null)
-            }}
-          >
-            <span>Participants présents :</span>
-            <input
-              className="input"
-              style={{ width: 100 }}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={expectedDraft}
-              onChange={(e) => setExpectedDraft(e.target.value)}
-              autoFocus
-            />
-            <button className="btn btn-primary btn-sm">OK</button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setExpectedDraft(null)}>
-              Annuler
-            </button>
-          </form>
+          <p className="center">🎬 Fin du déroulé. Bravo !</p>
         )}
         <div className="row">
-          {data.phase !== 'open' && (
-            <button className="btn btn-primary" onClick={() => update({ phase: 'open' })}>
-              {data.phase === 'wait' ? 'Ouvrir le vote' : 'Rouvrir le vote'}
+          {current > 0 && (
+            <button className="btn btn-sm" disabled={locked} onClick={() => goStep(current - 1)}>
+              ← Retour
             </button>
           )}
-          {data.phase === 'open' && (
-            <button className="btn btn-danger" onClick={() => update({ phase: 'closed' }, 'Clôturer le vote ? Plus personne ne pourra voter.')}>
-              Clôturer le vote
+          {scr.mode === 'reveal' && (
+            <button className="btn btn-sm" onClick={replay}>
+              ↻ Rejouer la révélation
             </button>
           )}
         </div>
+        <ol className="contest-steplist">
+          {STEPS.map((st, i) => (
+            <li key={i} className={i === current ? 'now' : i < current ? 'done' : ''}>
+              <button onClick={() => i !== current && goStep(i)}>{st.label}</button>
+            </li>
+          ))}
+        </ol>
       </div>
 
       <div className="card stack">
-        <h3>2. Noms des studios</h3>
-        <p className="muted">Tapez le nom choisi par chaque table. Sans nom, les téléphones afficheront « Studio 3 ».</p>
+        <h3>Noms des studios</h3>
+        <p className="muted">Tapez le nom choisi par chaque table, avant d’ouvrir le vote. Sans nom, les téléphones afficheront « Studio 3 ».</p>
         <div className="contest-names">
           {data.studios.map((s) => (
             <label key={s.table} className="row">
@@ -353,35 +407,6 @@ export function ContestPilot() {
             Enregistrer les noms
           </button>
           {saved && <span className="muted">✓ Enregistré</span>}
-        </div>
-      </div>
-
-      <div className="card stack">
-        <h3>3. Écran projeté</h3>
-        <a className="btn" href={`/v/${id}/ecran${k}`} target="_blank" rel="noreferrer">
-          Ouvrir l’écran à projeter ↗
-        </a>
-        <p className="muted">
-          🔊 Pour le son sans rien toucher : ouvrez l’écran avec les raccourcis du bureau (« Écran Nejmatou Lakoum » pour le
-          compteur, « Résultat 1, 2, 3 » pour chaque révélation). Ouvert avec le bouton ci-dessus, il faut cliquer une fois
-          n’importe où sur l’écran projeté.
-        </p>
-        <div className="row">
-          <button className={`btn${on('count') ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'count' } })}>
-            Compteur des votes
-          </button>
-        </div>
-        <div className="row">
-          {data.results.map((r, i) => (
-            <button key={r.id} className={`btn${on('reveal', i) ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'reveal', cat: i } })}>
-              Révéler : {r.label}
-            </button>
-          ))}
-        </div>
-        <div className="row">
-          <button className={`btn${on('podium') ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'podium' } })}>
-            Palmarès complet
-          </button>
         </div>
       </div>
 
@@ -431,6 +456,12 @@ export function ContestPilot() {
           <b>Réglages</b>
         </summary>
         <div className="stack" style={{ marginTop: 12 }}>
+          <a className="btn" href={`/v/${id}/ecran${k}`} target="_blank" rel="noreferrer">
+            Ouvrir l’écran à projeter ↗
+          </a>
+          <p className="muted">
+            🔊 Pour le son sans rien toucher, ouvrez plutôt l’écran avec le raccourci « Écran Nejmatou Lakoum » du bureau.
+          </p>
           <Link className="btn" to={`/v/${id}/qr${k}`} target="_blank">
             QR codes des tables (PDF, 4 par feuille) ↗
           </Link>
