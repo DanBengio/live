@@ -1416,26 +1416,52 @@ body.contest-body {
   animation-delay: 0.8s;
 }
 
-/* QR codes à imprimer : 2 par page A4 */
+/* QR codes à imprimer : 4 par feuille A4 */
 .qr-sheet {
   background: #fff;
   color: #111;
   min-height: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
   padding: 20px;
+}
+.qr-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 900px;
+  margin: 0 auto 20px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #fbf3df;
+  color: #3a2a0a;
+}
+.qr-toolbar .btn-primary {
+  background: #c99a2e;
+  border-color: #c99a2e;
+  color: #fff;
+}
+.qr-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto 16px;
 }
 .qr-card {
   border: 2px dashed #bbb;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
   break-inside: avoid;
+}
+.qr-card svg {
+  width: min(220px, 100%);
+  height: auto;
 }
 .qr-title {
   font-weight: 900;
@@ -1444,37 +1470,49 @@ body.contest-body {
   color: #8a6416;
 }
 .qr-table {
-  font-size: 2.6rem;
+  font-size: 2.2rem;
   font-weight: 900;
 }
 .qr-help {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 .qr-small {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #555;
 }
 @media print {
   @page {
-    size: A4;
-    margin: 12mm;
+    size: A4 portrait;
+    margin: 10mm;
   }
   body {
     background: #fff !important;
   }
+  .qr-toolbar {
+    display: none;
+  }
   .qr-sheet {
-    display: block;
     padding: 0;
   }
-  .qr-card {
-    height: 128mm;
-    justify-content: center;
-    margin-bottom: 8mm;
-    page-break-inside: avoid;
-  }
-  .qr-card:nth-child(2n) {
+  .qr-page {
+    max-width: none;
+    margin: 0;
+    height: 276mm;
+    gap: 6mm;
+    grid-template-rows: 1fr 1fr;
     page-break-after: always;
+    break-after: page;
+  }
+  .qr-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .qr-card {
+    padding: 4mm;
+  }
+  .qr-card svg {
+    width: 62mm;
   }
 }
 /* révélation 3e → 2e → 1er */

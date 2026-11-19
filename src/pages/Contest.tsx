@@ -326,6 +326,9 @@ export function ContestPilot() {
         <a className="btn" href={`/v/${id}/ecran${k}`} target="_blank" rel="noreferrer">
           Ouvrir l’écran à projeter ↗
         </a>
+        <a className="btn" href={`/v/${id}/qr${k}`} target="_blank" rel="noreferrer">
+          QR codes des tables (PDF, 4 par feuille) ↗
+        </a>
         <div className="row">
           <button className={`btn${on('count') ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'count' } })}>
             Compteur des votes
@@ -536,17 +539,37 @@ export function ContestQr() {
       .then((i) => setOrigin((i.publicUrl ?? location.origin).replace(/\/$/, '')))
       .catch(() => setOrigin(location.origin))
   }, [])
+  useEffect(() => {
+    // nom proposé pour le fichier PDF
+    if (data) document.title = `${data.title} - QR codes des tables`
+  }, [data])
   if (data === undefined || !origin) return <div className="page"><span className="spinner" /></div>
   if (data === null) return <div className="page"><p>Lien invalide.</p></div>
+  // 4 cartes par feuille A4
+  const pages: (typeof data.studios)[] = []
+  for (let i = 0; i < data.studios.length; i += 4) pages.push(data.studios.slice(i, i + 4))
   return (
     <div className="qr-sheet">
-      {data.studios.map((s) => (
-        <div key={s.table} className="qr-card">
-          <div className="qr-title">{data.title}</div>
-          <div className="qr-table">Table {s.table}</div>
-          <QRCodeSVG value={`${origin}/v/${id}?t=${s.table}`} size={260} level="M" />
-          <div className="qr-help">Scannez pour voter</div>
-          <div className="qr-small">{data.results.map((r) => r.label).join(' · ')}</div>
+      <div className="qr-toolbar">
+        <button className="btn btn-primary btn-lg" onClick={() => window.print()}>
+          ⬇️ Télécharger en PDF
+        </button>
+        <span>
+          Dans la fenêtre qui s’ouvre, choisissez <b>« Enregistrer au format PDF »</b> comme imprimante, puis <b>Enregistrer</b>. 4 QR
+          codes par feuille A4.
+        </span>
+      </div>
+      {pages.map((page, p) => (
+        <div key={p} className="qr-page">
+          {page.map((s) => (
+            <div key={s.table} className="qr-card">
+              <div className="qr-title">{data.title}</div>
+              <div className="qr-table">Table {s.table}</div>
+              <QRCodeSVG value={`${origin}/v/${id}?t=${s.table}`} size={220} level="M" />
+              <div className="qr-help">Scannez pour voter</div>
+              <div className="qr-small">{data.results.map((r) => r.label).join(' · ')}</div>
+            </div>
+          ))}
         </div>
       ))}
     </div>
