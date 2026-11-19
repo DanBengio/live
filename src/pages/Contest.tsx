@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { contestApi, usePoll, type ContestAdmin, type Ranked } from '../lib/contest'
-import { autoUnlock, cymbal, drumRoll, soundReady, unlockSound } from '../lib/drums'
+import { autoUnlock, cymbal, drumRoll } from '../lib/drums'
 
 function useContestTheme() {
   useEffect(() => {
@@ -362,8 +362,9 @@ export function ContestPilot() {
           Ouvrir l’écran à projeter ↗
         </a>
         <p className="muted">
-          🔊 Pour le son sans rien toucher : ouvrez l’écran avec le raccourci « Écran Nejmatou Lakoum » du bureau. Ouvert avec le
-          bouton ci-dessus, il faut cliquer une fois n’importe où sur l’écran projeté.
+          🔊 Pour le son sans rien toucher : ouvrez l’écran avec les raccourcis du bureau (« Écran Nejmatou Lakoum » pour le
+          compteur, « Résultat 1, 2, 3 » pour chaque révélation). Ouvert avec le bouton ci-dessus, il faut cliquer une fois
+          n’importe où sur l’écran projeté.
         </p>
         <div className="row">
           <button className={`btn${on('count') ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'count' } })}>
@@ -526,16 +527,12 @@ function Reveal({ data }: { data: ContestAdmin }) {
   )
 }
 
-/** le navigateur n'autorise le son qu'après un clic sur la page */
-function SoundButton() {
-  const [on, setOn] = useState(soundReady())
-  useEffect(() => autoUnlock(() => setOn(true)), [])
-  if (on) return null
-  return (
-    <button className="contest-sound" onClick={async () => setOn(await unlockSound())}>
-      🔊 Cliquez ici pour activer le son
-    </button>
-  )
+/**
+ * Le navigateur n'autorise le son qu'après un clic, sauf si l'écran est ouvert par un raccourci du bureau
+ * (navigateur lancé avec le son automatique). Rien à l'écran : un clic n'importe où suffit sinon.
+ */
+function useSound() {
+  useEffect(() => autoUnlock(() => {}), [])
 }
 
 export function ContestScreen() {
@@ -543,9 +540,13 @@ export function ContestScreen() {
   const { id = '' } = useParams()
   const [params] = useSearchParams()
   const key = params.get('k') ?? ''
-  const [data] = usePoll(() => contestApi.admin(id, key), 1500, [id, key])
-  if (data === undefined) return <div className="page"><span className="spinner" /></div>
-  if (data === null) return <div className="page"><p>Lien invalide.</p></div>
+  // ?revele=0 : cette page révèle directement la catégorie 0 (raccourcis « Résultat » du bureau)
+  const forced = params.get('revele')
+  const [polled] = usePoll(() => contestApi.admin(id, key), 1500, [id, key])
+  useSound()
+  if (polled === undefined) return <div className="page"><span className="spinner" /></div>
+  if (polled === null) return <div className="page"><p>Lien invalide.</p></div>
+  const data: ContestAdmin = forced !== null ? { ...polled, screen: { mode: 'reveal', cat: Number(forced) || 0 } } : polled
 
   let body
   if (data.screen.mode === 'reveal') body = <Reveal data={data} />
@@ -583,7 +584,6 @@ export function ContestScreen() {
     <div className="stage contest-stage">
       <div className="contest-marquee">{data.title}</div>
       <div className="stage-body">{body}</div>
-      <SoundButton />
     </div>
   )
 }
