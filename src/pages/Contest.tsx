@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { contestApi, usePoll, type ContestAdmin, type Ranked } from '../lib/contest'
-import { cymbal, drumRoll, soundReady, unlockSound } from '../lib/drums'
+import { autoUnlock, cymbal, drumRoll, soundReady, unlockSound } from '../lib/drums'
 
 function useContestTheme() {
   useEffect(() => {
@@ -362,11 +362,9 @@ export function ContestPilot() {
           Ouvrir l’écran à projeter ↗
         </a>
         <p className="muted">
-          🔊 Sur l’écran projeté, cliquez une fois sur « Activer le son » (en bas à droite) pour avoir le roulement de tambour.
+          🔊 Pour le son sans rien toucher : ouvrez l’écran avec le raccourci « Écran Nejmatou Lakoum » du bureau. Ouvert avec le
+          bouton ci-dessus, il faut cliquer une fois n’importe où sur l’écran projeté.
         </p>
-        <a className="btn" href={`/v/${id}/qr${k}`} target="_blank" rel="noreferrer">
-          QR codes des tables (PDF, 4 par feuille) ↗
-        </a>
         <div className="row">
           <button className={`btn${on('count') ? ' btn-primary' : ''}`} onClick={() => update({ screen: { mode: 'count' } })}>
             Compteur des votes
@@ -433,7 +431,7 @@ export function ContestPilot() {
         </summary>
         <div className="stack" style={{ marginTop: 12 }}>
           <Link className="btn" to={`/v/${id}/qr${k}`} target="_blank">
-            QR codes des tables à imprimer ↗
+            QR codes des tables (PDF, 4 par feuille) ↗
           </Link>
           <button className="btn btn-danger" onClick={() => update({ resetVotes: true, phase: 'wait', screen: { mode: 'count' } }, 'Effacer TOUS les votes ? (à faire après les essais)')}>
             Effacer tous les votes (après les essais)
@@ -531,6 +529,7 @@ function Reveal({ data }: { data: ContestAdmin }) {
 /** le navigateur n'autorise le son qu'après un clic sur la page */
 function SoundButton() {
   const [on, setOn] = useState(soundReady())
+  useEffect(() => autoUnlock(() => setOn(true)), [])
   if (on) return null
   return (
     <button className="contest-sound" onClick={async () => setOn(await unlockSound())}>

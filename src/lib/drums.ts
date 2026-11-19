@@ -27,10 +27,48 @@ export async function unlockSound(): Promise<boolean> {
 }
 export const soundReady = () => !!ctx && ctx.state === 'running'
 
+/**
+ * Essaie d'activer le son sans clic (possible quand l'écran est ouvert par le raccourci du bureau,
+ * qui lance le navigateur avec le son automatique), sinon au premier clic ou à la première touche.
+ */
+export function autoUnlock(onReady: () => void): () => void {
+  const c = audio()
+  if (!c) return () => {}
+  const check = () => {
+    if (c.state === 'running') {
+      onReady()
+      stop()
+    }
+  }
+  const tryNow = () => void c.resume().then(check, () => {})
+  const events = ['pointerdown', 'keydown', 'touchstart'] as const
+  const stop = () => events.forEach((e) => window.removeEventListener(e, tryNow, true))
+  events.forEach((e) => window.addEventListener(e, tryNow, true))
+  tryNow()
+  return stop
+}
+
 /** roulement de caisse claire, de plus en plus fort ; renvoie de quoi l'arrêter */
 export function drumRoll(ms: number): () => void {
   const c = audio()
-  if (!c || !noise || c.state !== 'running') return () => {}
+  if (!c || !noise) return () => {}
+  if (c.state !== 'running') {
+    // son pas encore activé : si on l'active pendant le roulement, on joue ce qu'il reste
+    const end = Date.now() + ms
+    let stopRoll = () => {}
+    const timer = setInterval(() => {
+      const left = end - Date.now()
+      if (left < 400) return clearInterval(timer)
+      if (c.state === 'running') {
+        clearInterval(timer)
+        stopRoll = drumRoll(left)
+      }
+    }, 200)
+    return () => {
+      clearInterval(timer)
+      stopRoll()
+    }
+  }
   const out = c.createGain()
   out.gain.value = 0.9
   const band = c.createBiquadFilter()
