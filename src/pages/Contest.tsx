@@ -494,51 +494,39 @@ function placesOf(ranking: Ranked[]) {
 }
 const MEDAL: Record<number, string> = { 1: '🏆', 2: '🥈', 3: '🥉' }
 const PLACE: Record<number, string> = { 1: '1er', 2: '2e', 3: '3e' }
-/** roulement de tambour avant chaque place : 8 s avant la première, 5 s avant les suivantes */
-const ROLL_FIRST = 8000
-const ROLL_NEXT = 5000
-/** pause après chaque place révélée, le temps de lire et d'applaudir */
-const PAUSE = 1500
+/** un seul roulement de tambour, puis les 3 premiers apparaissent ensemble */
+const ROLL = 8000
 
 function Reveal({ data }: { data: ContestAdmin }) {
   const res = data.results[data.screen.cat]
   const places = res ? placesOf(res.ranking) : []
   const order = [...places].reverse() // du 3e au 1er (ex æquo : une seule place pour plusieurs studios)
   const n = order.length
-  // step = nombre de places déjà révélées
-  const [step, setStep] = useState(0)
+  const [shown, setShown] = useState(false)
   useEffect(() => {
-    setStep(0)
-    const timers: ReturnType<typeof setTimeout>[] = []
-    const stops: (() => void)[] = []
-    let t = 600
-    for (let i = 0; i < n; i++) {
-      const roll = i === 0 ? ROLL_FIRST : ROLL_NEXT
-      timers.push(setTimeout(() => stops.push(drumRoll(roll)), t))
-      t += roll
-      timers.push(
-        setTimeout(() => {
-          setStep(i + 1)
-          cymbal(i === n - 1)
-        }, t),
-      )
-      t += PAUSE
-    }
+    setShown(false)
+    if (!n) return
+    let stop = () => {}
+    const start = setTimeout(() => (stop = drumRoll(ROLL)), 600)
+    const end = setTimeout(() => {
+      setShown(true)
+      cymbal(true)
+    }, 600 + ROLL)
     return () => {
-      timers.forEach(clearTimeout)
-      stops.forEach((stop) => stop())
+      clearTimeout(start)
+      clearTimeout(end)
+      stop()
     }
   }, [data.screen.cat, data.screen.mode, n])
   if (!res) return null
   const votes = (x: number) => `${x} vote${x > 1 ? 's' : ''}`
-  const next = order[step]
   return (
     <div className="contest-reveal">
       <div className="contest-cat">{res.label}</div>
       {n === 0 && <div className="contest-status">Aucun vote</div>}
       <div className="contest-places">
-        {order.map((p, i) => (
-          <div key={p.rank} className={`contest-place rank-${p.rank}${step > i ? ' in' : ''}`}>
+        {order.map((p) => (
+          <div key={p.rank} className={`contest-place rank-${p.rank}${shown ? ' in' : ''}`}>
             <div className="contest-medal">{MEDAL[p.rank]}</div>
             <div className="contest-place-label">
               {PLACE[p.rank]}
@@ -549,9 +537,9 @@ function Reveal({ data }: { data: ContestAdmin }) {
           </div>
         ))}
       </div>
-      {next && (
-        <div key={step} className="contest-drum">
-          🥁 <span>{next.rank === 1 ? (next.studios.length > 1 ? 'Et les gagnants sont…' : 'Et le gagnant est…') : `La ${next.rank}e place revient à…`}</span>
+      {n > 0 && !shown && (
+        <div className="contest-drum">
+          🥁 <span>{places[0].studios.length > 1 ? 'Et les gagnants sont…' : 'Et le gagnant est…'}</span>
         </div>
       )}
     </div>
