@@ -234,6 +234,7 @@ export function ContestPilot() {
   const [data, refresh] = usePoll(() => contestApi.admin(id, key), 2000, [id, key])
   const [names, setNames] = useState<Record<number, string> | null>(null)
   const [saved, setSaved] = useState(false)
+  const [expectedDraft, setExpectedDraft] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -282,6 +283,39 @@ export function ContestPilot() {
           {data.voters.length}
           {data.expected > 0 && <span className="muted"> / {data.expected}</span>} <small className="muted">votants</small>
         </div>
+        {expectedDraft === null ? (
+          <div className="row">
+            <span className="muted">Participants présents : {data.expected || 'non indiqué'}</span>
+            <button className="btn btn-sm" onClick={() => setExpectedDraft(String(data.expected || ''))}>
+              Modifier
+            </button>
+          </div>
+        ) : (
+          <form
+            className="row"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              await update({ expected: Number(expectedDraft) || 0 })
+              setExpectedDraft(null)
+            }}
+          >
+            <span>Participants présents :</span>
+            <input
+              className="input"
+              style={{ width: 100 }}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={expectedDraft}
+              onChange={(e) => setExpectedDraft(e.target.value)}
+              autoFocus
+            />
+            <button className="btn btn-primary btn-sm">OK</button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setExpectedDraft(null)}>
+              Annuler
+            </button>
+          </form>
+        )}
         <div className="row">
           {data.phase !== 'open' && (
             <button className="btn btn-primary" onClick={() => update({ phase: 'open' })}>
@@ -394,16 +428,6 @@ export function ContestPilot() {
           <b>Réglages</b>
         </summary>
         <div className="stack" style={{ marginTop: 12 }}>
-          <label className="row">
-            <span className="grow">Nombre de participants attendus</span>
-            <input
-              className="input"
-              style={{ width: 100 }}
-              type="number"
-              defaultValue={data.expected}
-              onBlur={(e) => update({ expected: Number(e.target.value) })}
-            />
-          </label>
           <Link className="btn" to={`/v/${id}/qr${k}`} target="_blank">
             QR codes des tables à imprimer ↗
           </Link>
